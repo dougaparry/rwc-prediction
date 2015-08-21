@@ -12,6 +12,7 @@
     <!-- link Bootstrap stylesheet (minified) via the static URL-->
     <link href="{{ STATIC_URL }}/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}/static/css/overriding_styles.css" rel="stylesheet">
+    <script src="{{ STATIC_URL }}/static/js/functions.js"></script>
 	</head>
 
 	<body>
@@ -49,11 +50,235 @@
       <![endif]-->
 
       <div class='container'>
-          <h1>The two teams are: {{ teamA }} and {{ teamB }} </h1>
-          <h2> The winner is: {{ winner }}</h2>
+        <table class="table table-condensed" style="border-collapse:collapse;">
+  <thead>
+      <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Team A</th>
+          <th>Team B</th>
+          <th>Winner</th>
+          <th>Probability</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
+          <td>1</td>
+          <td>05 May 2013</td>
+          <td>South Africa</td>
+          <td>New Zealand</td>
+          <td>New Zealand</td>
+          <td>0.82</td>
+      </tr>
+      <tr >
+          <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="demo1"> More information here </div> </td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo2" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6" class="hiddenRow"><div id="demo2" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo3" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo3" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo4" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo4" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo5" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo5" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo6" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo6" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo7" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo7" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo8" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo8" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo9" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo9" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo10" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo10" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo11" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo11" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo12" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo12" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo13" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo13" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo14" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo14" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo15" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo15" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo16" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo16" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo17" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo17" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo18" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo18" class="accordian-body collapse">More information here</div></td>
+      </tr>
+      <tr data-toggle="collapse" data-target="#demo19" class="accordion-toggle">
+        <td>1</td>
+        <td>05 May 2013</td>
+        <td>South Africa</td>
+        <td>New Zealand</td>
+        <td>New Zealand</td>
+        <td>0.82</td>
+      </tr>
+      <tr>
+          <td colspan="6"  class="hiddenRow"><div id="demo19" class="accordian-body collapse">More information here</div></td>
+      </tr>
+  </tbody>
+</table>
       </div>
 
-      <!-- BOTTOM OF THE PAGE STUFF -->
+      <!-- <div class='container'>
+          <h1>The two teams are: {{ teamA }} and {{ teamB }} </h1>
+          <h2> The winner is: {{ winner }}</h2>
+      </div> -->
 
     		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
    			<script src="{{ STATIC_URL }}/static/js/bootstrap.min.js"></script>

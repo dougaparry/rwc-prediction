@@ -16,3 +16,7 @@
 .navbar{
   margin: 0;
 }
+
+.hiddenRow {
+    padding: 0 !important;
+}
