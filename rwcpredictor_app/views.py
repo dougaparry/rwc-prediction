@@ -29,8 +29,8 @@ def recieveProbs(team1, team2):
     return probability
 
 def homepage(request):
-    homeTeam = 'South Africa'
-    awayTeam = 'New Zealand'
+    homeTeam = 'E'
+    awayTeam = 'Scotland'
 
     probability = recieveProbs(homeTeam, awayTeam)
     if probability[0] < probability[1]:
