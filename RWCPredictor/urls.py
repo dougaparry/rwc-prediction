@@ -20,6 +20,8 @@ from django.conf import settings
 urlpatterns = [
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'rwcpredictor_app.views.homepage'),
+    url(r'^how-it-works$', 'rwcpredictor_app.views.how_page'),
+    url(r'^about$', 'rwcpredictor_app.views.about_page'),
 ]
 if not settings.DEBUG:
     urlpatterns += patterns('',

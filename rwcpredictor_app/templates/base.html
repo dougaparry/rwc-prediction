@@ -12,9 +12,18 @@
     <!-- link Bootstrap stylesheet (minified) via the static URL-->
     <link href="{{ STATIC_URL }}/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}/static/css/overriding_styles.css" rel="stylesheet">
+    <script src="{{ STATIC_URL }}/static/js/functions.js"></script>
 	</head>
 
 	<body>
+    <!-- <header class="masthead container"> -->
+      <div class="jumbotron">
+          <div class="container">
+              <h1 class="jumbotron_text">RWC 2015 Predictor</h1>
+              <!-- Image Attribution: https://www.flickr.com/photos/landrovermena/18032322635/ -->
+            </div>
+          </div>
+    <!-- </header> -->
 
 	<!-- Static navbar -->
    		<nav class="navbar navbar-default navbar-static-top">
@@ -26,12 +35,14 @@
             			<span class="icon-bar"></span>
            				<span class="icon-bar"></span>
         		  </button>
-          		  <a class="navbar-brand" href="/">Home</a>
+          		  <!-- <a class="navbar-brand" href="/">Home</a> -->
         		</div>
 
         		<div id="navbar" class="navbar-collapse collapse">
           			<ul class="nav navbar-nav">
-               			 <li><a id='AboutLink' href="/about">About</a></li>
+										 <li><a id='howLink' href="/">Home</a></li>
+               			 <li><a id='howLink' href="/how-it-works">How it works</a></li>
+               			 <li><a id='aboutLink' href="/about">About us</a></li>
           			</ul>
         		</div><!--/.nav-collapse -->
       		</div> <!-- container -->
@@ -41,11 +52,9 @@
           <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
       <![endif]-->
 
-      <!-- All of the templates which inherit from this base extend it from this location -->
+			{% block content %}
 
-		{% block content %}
-
-		{% endblock %}
+			{% endblock %}
 
     		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
    			<script src="{{ STATIC_URL }}/static/js/bootstrap.min.js"></script>

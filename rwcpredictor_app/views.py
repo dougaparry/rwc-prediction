@@ -4,38 +4,56 @@ from django.shortcuts import RequestContext
 from django.http import HttpResponseRedirect
 #from models import MODELNAME
 
+from django.conf import settings
+
 #necessary for requesting & handling data from Domino API
 import unirest
 import json
 import yaml
 
+import os
+import csv
+
 #Displayling the home page:
 
-def recieveProbs(team1, team2):
-    teamA = team1
-    teamB = team2
-
-    response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
-        headers={
-            "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
-            "Content-Type": "application/json" },
-        params=json.dumps({
-            "parameters": [teamA, teamB]})
-            )
-
-    #extract information from response:
-    response_data = yaml.load(response.raw_body)
-    probability = response_data['result']
-    return probability
+# def recieveProbs(team1, team2):
+    # teamA = team1
+    # teamB = team2
+    #
+    # response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
+    #     headers={
+    #         "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
+    #         "Content-Type": "application/json" },
+    #     params=json.dumps({
+    #         "parameters": [teamA, teamB]})
+    #         )
+    #
+    # #extract information from response:
+    # response_data = yaml.load(response.raw_body)
+    # probability = response_data['result']
+    # return probability
 
 def homepage(request):
-    homeTeam = 'E'
-    awayTeam = 'Scotland'
+    data = list()
+    #f = open(os.path.join(settings.ROOT_PATH,'fixtures.csv'))
+    with open('fixtures.csv') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            data.append(row)
 
-    probability = recieveProbs(homeTeam, awayTeam)
-    if probability[0] < probability[1]:
-        winner = homeTeam
-    else:
-        winner = awayTeam
+    # homeTeam = 'E'
+    # awayTeam = 'Scotland'
+    #
+    # probability = recieveProbs(homeTeam, awayTeam)
+    # if probability[0] < probability[1]:
+    #     winner = homeTeam
+    # else:
+    #     winner = awayTeam
+    # return render(request, "home.html",{'winner': winner,'teamA': homeTeam, 'teamB':awayTeam})
+    return render(request,"home.html", {"data": data})
 
-    return render(request, "home.html",{'winner': winner,'teamA': homeTeam, 'teamB':awayTeam})
+def how_page(request):
+    return render(request, "how.html")
+
+def about_page(request):
+    return render(request,"about.html")

@@ -20,3 +20,15 @@
 .hiddenRow {
     padding: 0 !important;
 }
+
+
+@media (min-width: 768px) {
+    .navbar .navbar-nav {
+        display: inline-block;
+        float: none;
+    }
+
+    .navbar .navbar-collapse {
+        text-align: center;
+    }
+}
