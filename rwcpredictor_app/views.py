@@ -14,42 +14,51 @@ import yaml
 import os
 import csv
 
-#Displayling the home page:
+def receiveProbs(teamA, teamB):
+    response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
+        headers={
+            "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
+            "Content-Type": "application/json" },
+        params=json.dumps({
+            "parameters": [teamA, teamB]}))
 
-# def recieveProbs(team1, team2):
-    # teamA = team1
-    # teamB = team2
-    #
-    # response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
-    #     headers={
-    #         "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
-    #         "Content-Type": "application/json" },
-    #     params=json.dumps({
-    #         "parameters": [teamA, teamB]})
-    #         )
-    #
-    # #extract information from response:
-    # response_data = yaml.load(response.raw_body)
-    # probability = response_data['result']
-    # return probability
+    response_data = yaml.load(response.raw_body)
+    probability = response_data['result']
+    return probability
 
 def homepage(request):
     data = list()
-    #f = open(os.path.join(settings.ROOT_PATH,'fixtures.csv'))
+
+#need to edit so that the last rows for the quarters etc dont send through to Arnu
+# need to cache results and send on a timer because first try took 198 second second try took 190 seconds to
+#send 48 requests - TOO LONG
+
     with open('fixtures.csv') as f:
         reader = csv.reader(f)
         for row in reader:
             data.append(row)
 
-    # homeTeam = 'E'
-    # awayTeam = 'Scotland'
-    #
-    # probability = recieveProbs(homeTeam, awayTeam)
-    # if probability[0] < probability[1]:
-    #     winner = homeTeam
-    # else:
-    #     winner = awayTeam
-    # return render(request, "home.html",{'winner': winner,'teamA': homeTeam, 'teamB':awayTeam})
+    # test = list()
+    # test.append(receiveProbs("New Zealand", "South Africa"))
+    # test.append(receiveProbs("New Zealand", "South Africa"))
+    # test.append(receiveProbs("New Zealand", "South Africa"))
+    # test.append(receiveProbs("New Zealand", "South Africa"))
+    # test.append(receiveProbs("New Zealand", "South Africa"))
+
+    for item in data:
+        if int(item[0]) < 5:
+            probabilities = list()
+            probabilities.append(receiveProbs(item[3], item[4]))
+
+            if probabilities[0][0] < probabilities[0][1]:
+                winner = item[3]
+                item.append(winner)
+                item.append(probabilities[0][1])
+            else:
+                winner = item[4]
+                item.append(winner)
+                item.append(probabilities[0][0])
+
     return render(request,"home.html", {"data": data})
 
 def how_page(request):

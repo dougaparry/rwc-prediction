@@ -29,9 +29,9 @@ def main():
 
     while i < len(data):
         if j < 21:
-            fixtures.append([j,data[i].text,'09','15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
         else:
-            fixtures.append([j,data[i].text,'10','15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+            fixtures.append([j,data[i].text + '/10/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
         j +=1
         i +=7
     writeCSV(fixtures)
