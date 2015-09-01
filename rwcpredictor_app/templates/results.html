@@ -1,0 +1,23 @@
+{% extends 'home.html' %}
+
+{% block winner %}
+
+{% for element in new_data %}
+{% for item in element%}
+    {% if forloop.counter == 7 %}
+        {{ item }}
+  {% endif %}
+{% endfor %}
+{% endfor %}
+{% endblock %}
+
+{% block probability %}
+
+{% for element in new_data %}
+{% for item in element%}
+    {% if forloop.counter == 8 %}
+        {{ item }}
+  {% endif %}
+{% endfor %}
+{% endfor %}
+{% endblock %}

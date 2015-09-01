@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^$', 'rwcpredictor_app.views.homepage'),
     url(r'^how-it-works$', 'rwcpredictor_app.views.how_page'),
     url(r'^about$', 'rwcpredictor_app.views.about_page'),
+    url(r'^getprediction/(\d+)$', 'rwcpredictor_app.views.prediction'),
 ]
 if not settings.DEBUG:
     urlpatterns += patterns('',
