@@ -35,11 +35,11 @@ def get_predictions():
                 probabilities = receiveProbs(item[3], item[4])
                 if probabilities[0] < probabilities[1]:
                     item.append(item[3])
-                    item.append(float(probabilities[1])*100)
+                    item.append(round(float(probabilities[1])*100,2))
                     new_data.append(item)
                 else:
                     item.append(item[4])
-                    item.append(float(probabilities[0])*100)
+                    item.append(round(float(probabilities[0])*100,2))
                     new_data.append(item)
 
     return new_data
