@@ -57,9 +57,31 @@
                                   ({{ element }}%)</h4>
                                 {% endif %}
                               {% endfor %}
+
+                              {% for element in item %}
+                                 {% if forloop.counter == 1 %}
+                                   <h4 class="text-center hidden" id ="{{ element }}-share">
+                               {% endif %}
+                             {% endfor %}
+                             {% for element in item %}
+                                {% if forloop.counter == 7 %}
+                                <a class="twitter-share-button center-block" href="https://twitter.com/share"
+                                 class="twitter-share-button"
+                                 data-text="I just got a prediction for RWC2015 - get yours"
+                                 data-via="RWCPredictor" data-size="large"
+                                 data-hashtags="rwc2015predictor">Tweet</a>
+                                 <script>
+                                 !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
+                                 </script>
+                                 {% endif %}
+                             {% endfor %}
+                              </h4>
                             </div>
                       </div>
                    </div>
+
+
+
              </div>
       </div>
 

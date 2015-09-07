@@ -5,7 +5,6 @@ from django.http import HttpResponseRedirect
 #from models import MODELNAME
 
 from django.conf import settings
-
 import os
 import csv
 

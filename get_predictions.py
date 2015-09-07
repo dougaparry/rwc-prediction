@@ -20,7 +20,7 @@ def receiveProbs(teamA, teamB):
     return probability
 
 #Function to read in the values from the CSV and send them to the receiveProbs Function
-#Determines teh winner and winning probabilities
+#Determines the winner and winning probabilities
 
 def get_predictions():
     data = list()
