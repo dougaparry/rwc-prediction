@@ -28,10 +28,23 @@ def main():
     #Format: game number, day,month,year, teamA, teamB, Location
 
     while i < len(data):
-        if j < 21:
+        if j <= 21 and data[i+1].text == "USA":
+            data[i+1] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+        elif j <= 21 and data[i+3].text == "USA":
+            data[i+3] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+        elif j <= 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
-        else:
-            fixtures.append([j,data[i].text + '/10/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+        elif j > 21 and data[i+1].text == "USA":
+            data[i+1] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+        elif j > 21 and data[i+3].text == "USA":
+            data[i+3] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+        elif j > 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+
         j +=1
         i +=7
     writeCSV(fixtures)

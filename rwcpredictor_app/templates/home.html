@@ -2,14 +2,13 @@
 
 {% block content %}
 
-
 <div class='container'>
 
   <div class="row">
 
    {% for item in data %}
 
-       <div class="col-sm-4 col-lg-4 col-md-4">
+       <div class="col-sm-6 col-lg-6 col-md-6">
               <div class="thumbnail">
                   <div class="row">
                         <div class="col-xs-6">
@@ -35,10 +34,7 @@
 
                               {% for element in item %}
                                   {% if forloop.counter == 1 %}
-                                  <form action="/getprediction/{{ element }}" method=post>
-                                    {% csrf_token %}
-                                    <input type="submit" value="See Prediction"class="btn btn-default">
-                                  </form>
+                                  <button type="button" class="btn btn-default center-block" onclick="javascript:showPrediction({{ element }});">See Prediction</button>
 
                                 {% endif %}
                               {% endfor %}
@@ -46,20 +42,21 @@
                             </div>
                             <div class="col-xs-6"><!-- for the result -->
 
-                              {% for element in item %}
+                               {% for element in item %}
                                   {% if forloop.counter == 1 %}
-                                  {% if gameID == element %}
-
-                                  <h4 class="text-center" id="{{ element }}">
-                                          {% block winner %}
-
-                                          {% endblock %}
-                                          ({% block probability %}{% endblock %}%)
-                                  </h4>
-                                  {% endif %}
+                                    <h4 class="text-center hidden" id ="{{ element }}">
                                 {% endif %}
                               {% endfor %}
-
+                              {% for element in item %}
+                                 {% if forloop.counter == 7 %}
+                                  {{ element }}
+                                  {% endif %}
+                              {% endfor %}
+                              {% for element in item %}
+                               {% if forloop.counter == 8 %}
+                                  ({{ element }}%)</h4>
+                                {% endif %}
+                              {% endfor %}
                             </div>
                       </div>
                    </div>
@@ -70,34 +67,6 @@
 
   </div> <!-- row -->
 
-
-
-
-  <!-- <table class="table table-condensed" style="border-collapse:collapse;">
-    <thead>
-        <tr>
-            <th>Game #</th>
-            <th>Team A</th>
-            <th>Team B</th>
-            <th>Predicted Winner</th>
-            <th>Probability</th>
-        </tr>
-    </thead>
-    <tbody>
-      {% for item in data %}
-              <tr data-toggle="collapse" data-target="#demo{{ forloop.counter }}" class="accordion-toggle">
-                {% for element in item %}
-                    {% if forloop.counter != 6 and forloop.counter != 2 and forloop.counter != 3  %}
-                      <td>{{ element }}</td>
-                    {% endif %}
-                  {% endfor %}
-              </tr>
-              <tr>
-                  <td colspan="6" class="hiddenRow"><div id="demo{{ forloop.counter }}" class="accordian-body collapse">more info </div></td>
-            </tr>
-    {% endfor%}
-  </tbody>
-</table> -->
 </div>
 
 {% endblock %}
