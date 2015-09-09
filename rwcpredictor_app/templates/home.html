@@ -7,7 +7,8 @@
   <div class="row">
 
    {% for item in data %}
-              <div class="col-sm-12 col-lg-12 col-md-12">
+              <div class="col-sm-12 col-lg-12 col-md-12"  id="{{ item.0 }}-show"
+              >
               <div class="thumbnail">
                   <div class="row">
                         <div class="col-xs-6">
@@ -64,23 +65,36 @@
                                {% endif %}
                              {% endfor %}
                              {% for element in item %}
-                                {% if forloop.counter == 7 %}
-                                <a class="twitter-share-button center-block" href="https://twitter.com/share"
-                                 class="twitter-share-button"
-                                 data-text="I just got a prediction for RWC2015 - get yours"
-                                 data-via="RWCPredictor" data-size="large"
-                                 data-hashtags="rwc2015predictor">Tweet</a>
-                                 <script>
-                                 !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
-                                 </script>
+                                  {% if forloop.counter == 7 %}
+
+                                    {% if element == item.3 %}
+
+                                    <a href="https://twitter.com/share"
+                                       class="twitter-share-button"
+                                      data-text="{{ element }} to beat {{ item.4 }} with a probability of {{ item.7 }}"
+                                      data-via="RWCPredictor" data-size="large" data-count="none"
+                                      data-hashtags="rwc2015predictor">Tweet</a>
+                                    <!-- <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script> -->
+
+                                    {% endif %}
+
+                                    {% if element == item.4 %}
+
+                                    <a href="https://twitter.com/share"
+                                       class="twitter-share-button"
+                                      data-text="{{ element }} to beat {{ item.3 }}  with a probability of {{ item.7 }}%"
+                                      data-via="RWCPredictor" data-size="large" data-count="none"
+                                      data-hashtags="rwc2015predictor">Tweet</a>
+                                    <!-- <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script> -->
+
+                                    {% endif %}
+
                                  {% endif %}
                              {% endfor %}
                               </h4>
                             </div>
                       </div>
                    </div>
-
-
 
              </div>
       </div>
@@ -90,5 +104,7 @@
   </div> <!-- row -->
 
 </div>
+
+
 
 {% endblock %}
