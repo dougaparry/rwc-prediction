@@ -19,7 +19,15 @@ def homepage(request):
     return render(request,"home.html", {"data": data})
 
 def how_page(request):
-    return render(request, "how.html")
+    # Testing the scheduler with the code below (remove when done!)
+    data = list()
+
+    with open('test.csv') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            data.append(row)
+
+    return render(request, "how.html", {"data:" data})
 
 def about_page(request):
     return render(request,"about.html")

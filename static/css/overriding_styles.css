@@ -58,6 +58,14 @@ a{
   color: black;
 }
 
+.thumbnail{
+  padding-top: 0px;
+}
+
+.well{
+  margin-top: 0px;
+}
+
 /*Affixing nab bar styles*/
 
 #nav.affix {
