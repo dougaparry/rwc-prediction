@@ -27,7 +27,7 @@ def how_page(request):
         for row in reader:
             data.append(row)
 
-    return render(request, "how.html", {"data:" data})
+    return render(request, "how.html", {"data": data})
 
 def about_page(request):
     return render(request,"about.html")
