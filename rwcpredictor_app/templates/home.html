@@ -7,9 +7,18 @@
   <div class="row">
 
    {% for item in data %}
-              <div class="col-sm-12 col-lg-12 col-md-12"  id="{{ item.0 }}-show"
-              >
+              <div class="col-sm-12 col-lg-12 col-md-12"  id="{{ item.0 }}-show">
               <div class="thumbnail">
+
+                <div class="row">
+                  <div class="col-xs-12">
+                    <div class="well">
+                      <h4 class="text-center"> Game - {{ item.0 }}</h4>
+                      <h4 class="text-center">{{ item.1 }} - {{ item.2 }}</h4>
+                      <h4 class="text-center">{{ item.5 }}</h4>
+                    </div>
+                  </div>
+                </div>
                   <div class="row">
                         <div class="col-xs-6">
                             {% for element in item %}
