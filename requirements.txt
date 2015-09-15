@@ -9,8 +9,6 @@ django-toolbelt==0.0.1
 docutils==0.12
 futures==2.2.0
 gunicorn==19.3.0
-hashlib==20081119
-hmac==20101005
 jmespath==0.7.1
 lxml==3.4.4
 poster==0.8.1
