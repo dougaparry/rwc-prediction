@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# change back from predictionstest to just predictions and change the number of
-# times to run the loop back to 40!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 import unirest
 import csv
 import boto3
@@ -79,7 +76,7 @@ def get_predictions():
                 data.append(row)
 
     for item in data:
-        if int(item[0]) < 2:
+        if int(item[0]) < 40:
             probabilities = receiveProbs(item[3], item[4])
             if probabilities[0] < probabilities[1]:
                 item.append(item[3])
@@ -95,7 +92,7 @@ def get_predictions():
 # function to create the predictions CSV file
 
 def writeCSV(list):
-    with open('predictionstest.csv','w') as csvfile:
+    with open('predictions.csv','w') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')
         for item in list:
             writer.writerow(item)
@@ -105,7 +102,7 @@ def writeCSV(list):
 def upload():
     s3 = boto3.resource('s3')
 
-    data = open('predictionstest.csv', 'rb')
+    data = open('predictions.csv', 'rb')
     s3.Bucket('rwcbucket').put_object(Key='predictionstest.csv', Body=data)
 
 def predictionsCSV():
