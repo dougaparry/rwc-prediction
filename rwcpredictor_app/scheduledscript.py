@@ -97,13 +97,23 @@ def writeCSV(list):
         for item in list:
             writer.writerow(item)
 
+def sign(key, msg):
+    return hmac.new(key, msg.encode("utf-8"), hashlib.sha256).digest()
+
+def getSignatureKey(key, dateStamp, regionName, serviceName):
+    kDate = sign(("AWS4" + key).encode("utf-8"), dateStamp)
+    kRegion = sign(kDate, regionName)
+    kService = sign(kRegion, serviceName)
+    kSigning = sign(kService, "aws4_request")
+    return kSigning
+
 # Function to upload the CSV file to the Amazon S3 Bucket
 
 def upload():
     s3 = boto3.resource('s3')
 
     data = open('predictionstest.csv', 'rb')
-    s3.Bucket('rwcpredictors3bucket').put_object(Key='predictionstest.csv', Body=data)
+    s3.Bucket('rwcbucket').put_object(Key='predictionstest.csv', Body=data)
 
 def predictionsCSV():
     data = get_predictions()

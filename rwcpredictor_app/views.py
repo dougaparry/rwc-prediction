@@ -8,7 +8,7 @@ import csv
 import urllib2
 
 def homepage(request):
-    url = 'https://s3.eu-central-1.amazonaws.com/rwcpredictors3bucket/predictions.csv'
+    url = 'https://s3-us-west-1.amazonaws.com/rwcbucket/predictions.csv'
     data = list()
 
     response = urllib2.urlopen(url)
