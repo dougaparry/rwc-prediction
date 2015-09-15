@@ -18,6 +18,7 @@ def getData(url):
     r = unirest.get(url)
     data = BeautifulSoup(r.raw_body,"lxml")
     cells= data.find_all("td",{"class":"cellfirst"})
+    print "getData run" #temporary
     return cells
 
 # Function to clean the fixtures data return an array of the fixtures information
@@ -51,7 +52,7 @@ def fixtures():
 
         j +=1
         i +=7
-
+    print "gotten fixtures" #temporary
     return fixtures
 
 #Function to receive the probabilities from the API
@@ -66,6 +67,7 @@ def receiveProbs(teamA, teamB):
 
     response_data = yaml.load(response.raw_body)
     probability = response_data['result']
+    print "gotten probabilities" #temporary
     return probability
 
 #Function to read in the values and send them to the receiveProbs Function
@@ -76,7 +78,7 @@ def get_predictions():
     new_data = list()
 
     for item in data:
-        if int(item[0]) < 3:
+        if int(item[0]) < 5:
             probabilities = receiveProbs(item[3], item[4])
             if probabilities[0] < probabilities[1]:
                 item.append(item[3])
@@ -87,6 +89,7 @@ def get_predictions():
                 item.append(round(float(probabilities[0])*100,2))
                 new_data.append(item)
 
+    print "calculated winner" #temporary
     return new_data
 
 # function to create the predictions CSV file
@@ -96,16 +99,6 @@ def writeCSV(list):
         writer = csv.writer(csvfile, delimiter = ',')
         for item in list:
             writer.writerow(item)
-
-def sign(key, msg):
-    return hmac.new(key, msg.encode("utf-8"), hashlib.sha256).digest()
-
-def getSignatureKey(key, dateStamp, regionName, serviceName):
-    kDate = sign(("AWS4" + key).encode("utf-8"), dateStamp)
-    kRegion = sign(kDate, regionName)
-    kService = sign(kRegion, serviceName)
-    kSigning = sign(kService, "aws4_request")
-    return kSigning
 
 # Function to upload the CSV file to the Amazon S3 Bucket
 
