@@ -14,46 +14,44 @@ from bs4 import BeautifulSoup
 
 # Function to get the fixtures data from SuperSport
 
-def getData(url):
-    r = unirest.get(url)
-    data = BeautifulSoup(r.raw_body,"lxml")
-    cells= data.find_all("td",{"class":"cellfirst"})
-    print "getData run" #temporary
-    return cells
-
-# Function to clean the fixtures data return an array of the fixtures information
-
-def fixtures():
-    url = "http://www.supersport.com/rugby/rugby-world-cup/fixtures"
-    data = getData(url)
-
-    fixtures = list()
-
-    i = 0
-    j = 1
-
-    while i < len(data):
-        if j <= 21 and data[i+1].text == "USA":
-            data[i+1] = "United States"
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
-        elif j <= 21 and data[i+3].text == "USA":
-            data[i+3] = "United States"
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
-        elif j <= 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
-        elif j > 21 and data[i+1].text == "USA":
-            data[i+1] = "United States"
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
-        elif j > 21 and data[i+3].text == "USA":
-            data[i+3] = "United States"
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
-        elif j > 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
-            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
-
-        j +=1
-        i +=7
-    print "gotten fixtures" #temporary
-    return fixtures
+# def getData(url):
+#     r = unirest.get(url)
+#     data = BeautifulSoup(r.raw_body,"lxml")
+#     cells= data.find_all("td",{"class":"cellfirst"})
+#     return cells
+#
+# # Function to clean the fixtures data return an array of the fixtures information
+#
+# def fixtures():
+#     url = "http://www.supersport.com/rugby/rugby-world-cup/fixtures"
+#     data = getData(url)
+#
+#     fixtures = list()
+#
+#     i = 0
+#     j = 1
+#
+#     while i < len(data):
+#         if j <= 21 and data[i+1].text == "USA":
+#             data[i+1] = "United States"
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+#         elif j <= 21 and data[i+3].text == "USA":
+#             data[i+3] = "United States"
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+#         elif j <= 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+#         elif j > 21 and data[i+1].text == "USA":
+#             data[i+1] = "United States"
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+#         elif j > 21 and data[i+3].text == "USA":
+#             data[i+3] = "United States"
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+#         elif j > 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
+#             fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+#
+#         j +=1
+#         i +=7
+#     return fixtures
 
 #Function to receive the probabilities from the API
 
@@ -67,18 +65,21 @@ def receiveProbs(teamA, teamB):
 
     response_data = yaml.load(response.raw_body)
     probability = response_data['result']
-    print "gotten probabilities" #temporary
     return probability
 
 #Function to read in the values and send them to the receiveProbs Function
 #Determines the winner and winning probabilities
 
 def get_predictions():
-    data = fixtures()
+    data = list()
     new_data = list()
+    with open('fixtures.csv') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                data.append(row)
 
     for item in data:
-        if int(item[0]) < 5:
+        if int(item[0]) < 2:
             probabilities = receiveProbs(item[3], item[4])
             if probabilities[0] < probabilities[1]:
                 item.append(item[3])
@@ -89,7 +90,6 @@ def get_predictions():
                 item.append(round(float(probabilities[0])*100,2))
                 new_data.append(item)
 
-    print "calculated winner" #temporary
     return new_data
 
 # function to create the predictions CSV file

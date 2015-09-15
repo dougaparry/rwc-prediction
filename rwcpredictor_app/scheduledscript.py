@@ -56,7 +56,6 @@ from bs4 import BeautifulSoup
 #Function to receive the probabilities from the API
 
 def receiveProbs(teamA, teamB):
-    print "in receiveprobs"#TEMPORARY
     response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
         headers={
             "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
