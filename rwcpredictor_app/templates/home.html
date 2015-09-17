@@ -7,10 +7,10 @@
 <div class='container'>
 
   <div class="page-header">
-  <h1 class="text-center">Welcome to the RWC 2015 Predictor</h1>
-  <h1 class="text-center">Choose a game and select 'see prediction' to get your machine-learning based prediction for this game</h1>
+  <h3 class="text-center">Welcome to the RWC 2015 Predictor</h3>
+  <h3 class="text-center">Choose a game and select 'see prediction' to get your machine-learning based prediction for this game</h3>
+  <h3 class="text-center">The model is retrained following each game, providing new, updated predictions</h3>
 </div>
-
 
   <div class="row">
 
@@ -27,89 +27,63 @@
                     </div>
                   </div>
                 </div>
+                <div class="row">
+                  <div class="col-xs-12">
+                        <button type="button" class="btn btn-default center-block" onclick="javascript:showPrediction('{{ item.0 }}', '{{ item.6 }}', '{{ item.7 }}', '{{ item.3 }}', '{{ item.4 }}');">See Prediction</button>
+                  </div>
+                </div>
                   <div class="row">
                         <div class="col-xs-6">
                             {% for element in item %}
                                 {% if forloop.counter == 4  %}
                                   <img class="center-block" width="150" height="180" src="{{ STATIC_URL }}/static/logos/{{element}}.png"/>
-                                  <h4 class="text-center">{{ element }}</h4>
+                                  <h4 class="text-center" id="{{ item.0 }}{{ element }}">{{ element }}</h4>
                               {% endif %}
                             {% endfor %}
                         </div>
+
                         <div class="col-xs-6">
-                            <!-- <img class="img-circle center-block" src="http://placehold.it/150x150"/> -->
                             {% for element in item %}
                                 {% if forloop.counter == 5 %}
                                   <img class="center-block"  width="150" height="180" src="{{ STATIC_URL }}/static/logos/{{element}}.png"/>
-                                  <h4 class="text-center">{{ element }}</h4>
+                                  <h4 class="text-center" id="{{ item.0 }}{{ element }}">{{ element }}</h4>
                               {% endif %}
                             {% endfor %}
                         </div>
                  </div>
                     <div class="caption">
                       <div class="row">
-                            <div class="col-xs-6"> <!-- for the button -->
 
-                              {% for element in item %}
-                                  {% if forloop.counter == 1 %}
-                                  <button type="button" class="btn btn-default center-block" onclick="javascript:showPrediction({{ element }});">See Prediction</button>
-
-                                {% endif %}
-                              {% endfor %}
-
+                            <div class="col-xs-4"><!-- for the result -->
+                              <h4 class="text-center hidden" id = "{{ item.0 }}-1">{{ item.6 }}%</h4>
                             </div>
-                            <div class="col-xs-6"><!-- for the result -->
 
-                               {% for element in item %}
-                                  {% if forloop.counter == 1 %}
-                                    <h4 class="text-center hidden" id ="{{ element }}">
-                                {% endif %}
-                              {% endfor %}
-                              {% for element in item %}
-                                 {% if forloop.counter == 7 %}
-                                  {{ element }}
-                                  {% endif %}
-                              {% endfor %}
-                              {% for element in item %}
-                               {% if forloop.counter == 8 %}
-                                  ({{ element }}%)</h4>
-                                {% endif %}
-                              {% endfor %}
+                            <div class="col-xs-4">
+                              <h4 class="text-center hidden" id="{{ item.0 }}-2">
+                              {% if item.6 > item.7 %}
 
-                              {% for element in item %}
-                                 {% if forloop.counter == 1 %}
-                                   <h4 class="text-center hidden" id ="{{ element }}-share">
-                               {% endif %}
-                             {% endfor %}
-                             {% for element in item %}
-                                  {% if forloop.counter == 7 %}
+                              <a href="https://twitter.com/share"
+                                 class="twitter-share-button"
+                                data-text="{{ item.3 }} to beat {{ item.4 }} with a probability of {{ item.6 }}"
+                                data-via="RWCPredictor" data-size="large" data-count="none"
+                                data-hashtags="rwc2015predictor">Tweet</a>
 
-                                    {% if element == item.3 %}
+                              {% endif %}
 
-                                    <a href="https://twitter.com/share"
-                                       class="twitter-share-button"
-                                      data-text="{{ element }} to beat {{ item.4 }} with a probability of {{ item.7 }}"
-                                      data-via="RWCPredictor" data-size="large" data-count="none"
-                                      data-hashtags="rwc2015predictor">Tweet</a>
-                                    <!-- <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script> -->
-
-                                    {% endif %}
-
-                                    {% if element == item.4 %}
-
-                                    <a href="https://twitter.com/share"
-                                       class="twitter-share-button"
-                                      data-text="{{ element }} to beat {{ item.3 }}  with a probability of {{ item.7 }}%"
-                                      data-via="RWCPredictor" data-size="large" data-count="none"
-                                      data-hashtags="rwc2015predictor">Tweet</a>
-                                    <!-- <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script> -->
-
-                                    {% endif %}
-
-                                 {% endif %}
-                             {% endfor %}
-                              </h4>
+                              {% if item.7 > item.6 %}
+                              <a href="https://twitter.com/share"
+                                 class="twitter-share-button"
+                                data-text="{{ item.4 }} to beat {{ item.3 }} with a probability of {{ item.7 }}"
+                                data-via="RWCPredictor" data-size="large" data-count="none"
+                                data-hashtags="rwc2015predictor">Tweet</a>
+                              {% endif %}
+                            </h4>
                             </div>
+
+                            <div class="col-xs-4"><!-- for the result -->
+                              <h4 class="text-center hidden" id = "{{ item.0 }}-3">{{ item.7 }}%</h4>
+                            </div>
+
                       </div>
                    </div>
 
@@ -127,7 +101,5 @@
      <a href="#">Back to top</a>
    </p>
  </div>
-
-
 
 {% endblock %}

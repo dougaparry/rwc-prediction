@@ -1,11 +1,18 @@
 
-function showPrediction(elementID){
-  document.getElementById(elementID).className = "text-center"
-  document.getElementById(elementID + "-share").className = "text-center"
+function showPrediction(game, prob1, prob2, teamA, teamB){
+  document.getElementById(game+"-1").className = "text-center";
+  document.getElementById(game+"-2").className = "text-center";
+  document.getElementById(game+"-3").className = "text-center";
+
+  if (prob1 > prob2){
+    document.getElementById(game+teamA).style.color = "green";
+  } else {
+    document.getElementById(game+teamB).style.color = "green";
+  }
 }
 
 // Function to determine which game to scroll to
-// compares the current date to any of teh upcoming ones,
+// compares the current date to any of the upcoming ones,
 // scrolling to the next most likely game
 
 function determine(){

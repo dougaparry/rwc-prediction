@@ -76,16 +76,22 @@ def get_predictions():
                 data.append(row)
 
     for item in data:
-        if int(item[0]) < 40:
+        if int(item[0]) < 41:
             probabilities = receiveProbs(item[3], item[4])
-            if probabilities[0] < probabilities[1]:
-                item.append(item[3])
-                item.append(round(float(probabilities[1])*100,2))
-                new_data.append(item)
-            else:
-                item.append(item[4])
-                item.append(round(float(probabilities[0])*100,2))
-                new_data.append(item)
+            item.append(round(float(probabilities[1])*100,2)) #team 1 prob
+            item.append(round(float(probabilities[0])*100,2)) #team 2 prob
+            new_data.append(item)
+
+            # if probabilities[0] < probabilities[1]:
+            #     item.append(item[3])
+            #     item.append(round(float(probabilities[1])*100,2)) #winning prob
+            #     item.append(round(float(probabilities[0])*100,2)) #losing prob
+            #     new_data.append(item)
+            # else:
+            #     item.append(item[4])
+            #     item.append(round(float(probabilities[0])*100,2)) #winning prob
+            #     item.append(round(float(probabilities[1])*100,2)) #losing prob
+            #     new_data.append(item)
 
     return new_data
 
@@ -103,7 +109,7 @@ def upload():
     s3 = boto3.resource('s3')
 
     data = open('predictions.csv', 'rb')
-    s3.Bucket('rwcbucket').put_object(Key='predictionstest.csv', Body=data)
+    s3.Bucket('rwcbucket').put_object(Key='predictions.csv', Body=data)
 
 def predictionsCSV():
     data = get_predictions()

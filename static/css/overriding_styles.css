@@ -66,6 +66,10 @@ a{
   margin-top: 0px;
 }
 
+.btn{
+  white-space: normal;
+}
+
 
 /*Affixing nab bar styles*/
 
