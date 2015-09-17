@@ -70,6 +70,13 @@ a{
   white-space: normal;
 }
 
+.arnu a{
+  color: rgb(0,143,201);
+}
+
+.doug a{
+  color: rgb(0,143,201);
+}
 
 /*Affixing nab bar styles*/
 

@@ -6,25 +6,458 @@
 	<div class="page-header text-center">
   		<h1>How it works</h1>
 	</div>
+</div>
 
-	<div class="panel panel-default">
-		<div class="panel-body">
-		Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-		 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-		 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-		 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-		 fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-		 culpa qui officia deserunt mollit anim id est laborum.
+<div class="container">
+	<div class="row">
+		<div class="col-xs-6">
+			<h4 class="text-center"><button type="button" class="btn btn-default btn-lg btn-block" >Statistics</button></h4>
+</div>
+
+		<div class="col-xs-6">
+			<h4 class="text-center"><button type="button" class="btn btn-default btn-lg btn-block" >Web</button></h4>
+		</div>
+				</div>
+
+				<hr>
+</div>
+
+
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+
+<div class="container arnu">
+	<div id="header">
+	<h1 class="title">Predicting the future of the 2015 Rugby World Cup using Domino and R.</h1>
+	<h4 class="author"><em>Arnu Pretorius</em></h4>
+	<h4 class="date"><em>08 September 2015</em></h4>
 	</div>
-</div>
 
-{% for element in data %}
+
+	<p>For the sake of brevity, not all the relevant data and code are displayed in this post but can rather be found <a href="https://github.com/arnupretorius/RWCPrediction" title="github rwcPrediction">here</a>.</p>
+	<div id="introduction" class="section level1">
+	<h1>Introduction</h1>
+	<p>The Rugby World Cup (RWC) is here! With many fans around the world excited to see the action unfold over the next month and a half.</p>
+	<p>If you’ve never heard of the sport, <a href="http://www.whatisrugby.com/rugby-basics/rubgy-overview/" title="What is rugby">whatisrugby.com</a> provides the following short description:</p>
+	<blockquote>
+	<p>Rugby is a free-flowing game that features a combination of strength, speed and strategy to move a ball into an opponents territory. Rugby is a full-contact sport yet players wear little-or no protective gear. Rugby evolved from football (i.e. soccer) and is often called the ‘game played in heaven’.</p>
+	</blockquote>
+	<p>(Definitely an entertaining sport to watch, but the “game played in heaven”? Probably still up for debate.)</p>
+	<p>In this blog post I go through the steps I took to build a machine learning model using <a href="https://www.dominodatalab.com/" title="Domino">Domino</a> and <a href="https://www.r-project.org/" title="R">R</a> to try predict the outcome of each upcoming RWC match. Don’t feel like reading it all? Feel free to skip to what strikes your fancy:</p>
+	<ul>
+	<li>Part 1: <a href="#getting-the-data">Getting the data</a></li>
+	<li>Part 2: <a href="#exploring-the-data">Exploring the data</a></li>
+	<li>Part 3: <a href="#model-selection">Model selection</a></li>
+	<li>Part 4: <a href="#automating-the-process-using-domino-scheduling">Automating the process using Domino scheduling</a></li>
+	<li>Part 5: <a href="#using-domino-api-endpoints-for-prediction-requests">Using Domino API Endpoints for prediction requests</a></li>
+	</ul>
+	<p>Before I go through the specifics, I would just like to mention that the initial idea was to simply get some relevant rugby data from the web, train a model using the data collected and then make predictions. Pretty simple, so lets get started!</p>
+	<div id="getting-the-data" class="section level2">
+	<h2>Getting the data</h2>
+	<p>As with many machine learning undertakings the first step was to collect the data. I found a good source of rugby data at <a href="http://www.rugbydata.com/" title="Rugbydata">rugbydata.com</a>. For each of the 20 teams in the RWC I collected some general historical team statistics and past matches stretching back to the beginning of 2013 (shown below for South Africa).</p>
+	<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/getting.png" alt="getting the data" />
+	</p>
+
+	<p>Only the matches between teams that are actually going to compete in the tournament were kept. In addition, tied matches were discarded. The first reason for this is due to the fact that in rugby a tied match is a fairly rare occurrence. The second, is that I was more concerned with predicting a win or a loss, the outcomes most fans care about, rather than also being able to predict match ties.</p>
+	<p>As another data source I collected the rankings of each team as well as their recent change in rank from <a href="http://wrr.live555.com/" title="rankings">this site</a> (shown below).</p>
+
+	<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/world.png" alt="world rankings" />
+	</p>
+	<p>Finally, connected to team rankings are ranking points that I managed to find on a <a href="https://en.wikipedia.org/wiki/World_Rugby_Rankings" title="wiki">world rugby rankings</a> Wikipedia page.</p>
+	<p>
+			<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/wiki.png" alt="heatmap" />
+	</p>
+
+	<p>Since most of the data only reflect the current state of each team’s historical performance and rank, weights were computed based on the date of each match (matches are treated as observations) in an attempt to adjust the data to exhibit a more accurate reflection of the past. The entire data collection, cleaning and structuring was done with <a href="https://github.com/arnupretorius/RWCPrediction/blob/master/GetRWCData.R" title="getRWCData">code</a> written in R.</p>
+	</div>
+	<div id="exploring-the-data" class="section level2">
+	<h2>Exploring the data</h2>
+	<p>Now that the data was in the bag, it was time to go explore! As a quick overview of the data I looked at a <a href="http://www.r-bloggers.com/using-r-correlation-heatmap-take-2/" title="corr heat map">heat map of the correlation</a> between all the variables.</p>
+	<pre class="r"><code># load data
+	data &lt;- read.csv(&quot;RWCData.csv&quot;)
+
+	# Correlation heat map of the training data
+	library(ggplot2)
+	library(reshape2)
+	dataCor &lt;- cbind(as.numeric(data[,1]), as.numeric(data[,2]), as.numeric(data[,3]), data[,-c(1,2,3)])
+
+	colnames(dataCor) &lt;- colnames(data)
+	title &lt;- &quot;Rugby training data correlation heat map&quot;
+	corp &lt;- qplot(x=Var1, y=Var2, data=melt(cor(dataCor, use=&quot;p&quot;)), fill=value, geom=&quot;tile&quot;) +
+	      scale_fill_gradient2(limits=c(-1, 1))
+	corp &lt;- corp + theme(axis.title.x=element_blank(), axis.text.x=element_blank()
+	                     , axis.ticks=element_blank())
+	corp &lt;- corp + ggtitle(title)
+	corp</code></pre>
+</div>
 <p>
-	{{ element }}
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/heat.png" alt="wikiworld rankings" />
 </p>
-{% endfor %}
+
+<p>A dark blue square indicates a strong positive correlation between two variables and a dark red square a strong negative correlation. As I sort of expected many of the variables seemed to be correlated with each other (such as the average points scored against a team at home and the number of games the team lost at home). Nevertheless, in the first column of the heat map I was able find the degree of correlation between all the variables (indexed by the rows) with the outcome of the match. The rank of the home and away team seemed to be fairly correlated with the match outcome when compared to the other variables. So I took a closer look.</p>
+
+<pre class="r"><code>ggplot(data, aes(RankAway, RankHome, color=Outcome)) + geom_point() + geom_smooth()</code></pre>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/plot.png" alt="plot" />
+</p>
+<p>Since the <em>Outcome</em> variable was coded to indicate whether the home team won or lost, I could clearly see that more winning matches were associated with the higher ranked teams playing at home. (It was also interesting to see my lack of data on poorly ranked teams.)</p>
+</div>
+<div id="model-selection" class="section level2">
+<h2>Model selection</h2>
+<p>I started off by splitting the data into a training and test set using the <a href="http://topepo.github.io/caret/index.html" title="caret">classification and regression training (caret) package</a> in R. This is an extremely powerful and handy package capable of performing many machine learning tasks from data pre-processing and splitting to model training, tuning and variable selection.</p>
+<pre class="r"><code># Load libraries
+library(caret)
+library(randomForest)
+
+# split data
+set.seed(123)
+trainIndex &lt;- createDataPartition(data[,1], p = .7,
+                                  list = FALSE,
+                                  times = 1)
+train &lt;- data[trainIndex,]
+test  &lt;- data[-trainIndex,]</code></pre>
+<p>Due to its general good performance, ease of training and amenability for parallel processing, like many others I chose the <a href="https://en.wikipedia.org/wiki/Random_forest" title="rf">Random Forest</a> (RF) classifier as a good place to start. A Random Forest for classification is an ensemble of <a href="https://en.wikipedia.org/wiki/Decision_tree_learning" title="class trees">classification trees</a> each built using a bootstrap sample of the observations and only allowing a random subset of variables for selection at each node split. The final classification takes the form of a majority vote. For a great introduction to classification trees and Random Forests take a look at <a href="https://class.coursera.org/bigdataschool-001/wiki/Day_8" title="RF slides">these slide</a> by Thomas Fuchs. In addition, I also investigated the performance of <a href="https://www.google.co.za/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;cad=rja&amp;uact=8&amp;ved=0CCEQFjAAahUKEwiX5P3Zv_bHAhVD6RQKHXhQBhg&amp;url=http%3A%2F%2Fpeople.csail.mit.edu%2Fmenze%2Fpapers%2Fmenze_11_oblique.pdf&amp;usg=AFQjCNFp_luWSlWHAKcZ5FoGta_4WSZzKg&amp;sig2=h_oL4JqZyKAcopJTykMw-At" title="orf">Oblique Random Forests</a> (ORF).</p>
+<p>Normally the classification trees used in Random Forests split the variable space using orthogonal (perpendicular to the variable axis) splits, whereas Oblique Random Forests use some linear combination of the variables for splitting. Oblique trees are better suited for splitting a space consisting of many correlated variables, therefore I thought the Oblique Random Forest might perform better on the rugby data. Furthermore, many different linear classifiers can be used to produce the linear combinations used for splitting. I ended up using <a href="https://en.wikipedia.org/wiki/Partial_least_squares_regression" title="PLS">Partial Least Squares</a> (PLS).</p>
+<p>The tuning parameter associated with the Random Forest and Oblique Random Forest is the size of the subset of randomly selected variables used at each node split. The following code sets up a tuning grid consisting of several different sizes of this subset and specifies the method used to train the model, in this case 5-fold <a href="chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/http://research.cs.tamu.edu/prism/lectures/iss/iss_l13.pdf" title="CV">cross-validation (CV)</a>.</p>
+<pre class="r"><code># Train classifiers
+library(doParallel)
+cl &lt;- makeCluster(8)
+registerDoParallel(cl)
+
+# Model tuning grids
+rfGrid &lt;-  expand.grid(mtry = c(1, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50))
+
+# Tune using 5-fold cross-validation
+fitControl &lt;- trainControl(method = &quot;cv&quot;,
+                           number = 5,
+                           repeats = 1)</code></pre>
+<p>To train the models I used the <em>train</em> function from the caret package with the <em>method</em> argument set to “rf” for Random Forests and “ORFpls” for Oblique Random Forest using PLS for node splits. Below is the code for a RF using 1000 trees (with extra code bits to store the time it took to train the model).</p>
+<pre class="r"><code># Random Forests
+start.time &lt;- Sys.time()
+set.seed(1)
+rf &lt;- train(x=train[,-1], y=train[,1], method=&quot;rf&quot;, ntree=1000,trControl=fitControl, tuneGrid=rfGrid, importance=TRUE)
+end.time &lt;- Sys.time()
+time.taken.rf &lt;- end.time - start.time</code></pre>
+
+
+<table class="table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Training time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Random Forest</td>
+        <td>8.58 secs</td>
+      </tr>
+      <tr>
+        <td>Oblique RF pls</td>
+        <td>26.19 mins</td>
+      </tr>
+    </tbody>
+  </table>
+
+<p>The training time was 8.58 seconds for the RF and 26.19 minutes for the ORF, meaning that the ORF took roughly 183 times longer to train! This is because at each split for ORF a PLS model is fitted instead of a less computationally intense orthogonal split used in RF. The plot below shows the CV accuracy of each model for a different subset size of randomly selected variables as well as standard deviation bounds.</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/plot2.png" alt="plot" />
+</p>
+
+<p>Both models seemed to prefer small subset sizes (for the RF 7 and ORF 10) with the ORF outperforming the RF when the subset sizes were optimal for each model. However, the accuracy computed in this way (only using the training data) is not a true reflection of the models ability to generalise to unseen data. So to get a better idea of the performance of the models I plotted an <a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" title="ROC curve">ROC</a> curve.</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/roc.png" alt="roc curve" />
+</p>
+
+<p>RF and ORF both produce <a href="https://en.wikipedia.org/wiki/Posterior_probability" title="post probs">posterior (after the data has been taken into account) probabilities</a> for observations to belong to a certain class. In a binary case, such as whether a team is going to loose or win a match, a threshold can be set (say 0.5) and if the posterior probability is above this threshold we classify to the “win”&quot; class, otherwise if it is below the threshold we classify to the “loose” class. The ROC curve shows the <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">false positive rate</a> (fraction of matches a team wins incorrectly classified as a loss) and <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">true positive rate</a> (fraction of matches a team won correctly classified as a win) for a sequence of thresholds from 0 to 1. Simply put, the classifier with a corresponding ROC curve that most closely hugs the top left corner of the plot as it arcs from the bottom left to the top right is considered to have the highest predictive power. So the two models seemed to be fairly similar. It was interesting to note that if the threshold was simply set to zero, both models would’ve correctly predicted a team winning when they actually won around 40% of the time. Lastly, the hold out test set was used to obtain the test accuracy of each model, given below.</p>
+
+<table class="table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Test set accuracy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Random Forest</td>
+        <td>74.14%</td>
+      </tr>
+      <tr>
+        <td>Oblique RF pls</td>
+        <td>75.86%</td>
+      </tr>
+    </tbody>
+  </table>
+
+<p>The ORF outperformed the RF by roughly 1.7%.</p>
+<p>So there it was, I had my model! Ready with my trained Oblique Random Forest at my side I was going to predict the future of the Rugby World Cup. But then I thought, wouldn’t it be really cool if I could find some way to do what I just did, but between each match incorporate the latest result from the tournament? In other words, collect the outcome of a match just after it took place, add it to my data, retrain the model and make a prediction for the next match with the new up to date model. On top of this, would it be possible to do it in some automated fashion? Then along came Domino!</p>
+</div>
+<div id="automating-the-process-using-domino-scheduling" class="section level2">
+<h2>Automating the process using Domino scheduling</h2>
+<p>I first heard of Domino from <a href="http://blog.dominodatalab.com/using-r-h2o-and-domino-for-a-kaggle-competition/" title="domBlog1">this</a> great blog post by <a href="http://www.jofaichow.co.uk/" title="jo">Jo-Fai Chow</a> which shows you how to use R, <a href="http://h2o.ai/" title="H2O">H2O</a> and Domino for a <a href="https://www.kaggle.com/" title="kaggle">Kaggle</a> competition. In a nutshell, Domino is an enterprise-grade platform that enables you to run, scale, share, and deploy analytical models. The post also includes a tutorial on how to get started with Domino, from getting up and running to running your first R program in the cloud! I would recommend this as a good place to start for anyone new to Domino. Alternatively, you can simply sign up <a href="https://app.dominodatalab.com/signup" title="signup">here</a> for a 14-day free trial and once your account has been created you can access a Tour page that will get you up and running in no time.</p>
+<p>So the first thing I needed to do to automate the process of data collection and model retraining was to upload my R scripts. First, the script (<em>GetRWCData.R</em>) responsible for getting and cleaning the data which outputs a .csv file containing the new data. Second, I had to upload the script (<em>RWCPrediction.R</em>) used to train the model on the outputted data, saving the model as a .rda file.</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino1.png" alt="domino" />
+</p>
+
+<p>As a last minute decision I decided to use the RF instead of the ORF because of the RF having a much sorter training time but still being a close contender regarding performance. Therefore the model training script <em>RWCPrediction.R</em> contains the following code.</p>
+<pre class="r"><code>### International Rugby world cup match prediction model ###
+
+# load libraries
+library(caret)
+library(randomForest)
+
+# load data
+data &lt;- read.csv(&quot;RWCData.csv&quot;)
+cols &lt;- 4:ncol(data)
+data[,cols] = apply(data[,cols], 2, function(x) as.numeric(x))
+
+# tune Grid
+rfGrid &lt;-  expand.grid(mtry = c(1, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50))
+
+# Tune using 5-fold cross-validation
+fitControl &lt;- trainControl(method = &quot;cv&quot;,
+                           number = 5,
+                           repeats = 1)
+
+# train classifier
+model &lt;- train(x=data[,-1], y=data[,1], method=&quot;rf&quot;, ntree=1000,trControl=fitControl, tuneGrid=rfGrid)
+
+# save model
+saveRDS(model, file = &quot;RWC_Prediction_Model.rda&quot;)</code></pre>
+<p>Now to automate using Domino’s scheduling functionality! To do this I simply went to the schedule tab, inserted my script for getting the data as the <em>command to run</em>, set a recurring time and clicked <em>schedule</em>. (The following example is slightly simplified since I had to fine tune the schedule to run between each game and not just every day at a fixed time.)</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/automate.png" alt="domino" />
+</p>
+
+<p>After the data script had ran successfully, the model script can use the new data to retrain the model. So similarly, I inserted my script for training the model as the <em>command to run</em>, set the recurring time (an hour after the data had been collected) and clicked <em>schedule</em>. Note in this case I also ticked the <em>publish after complete</em> box which takes care of republishing the API (more about this later).</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino2.png" alt="domino" />
+</p>
+
+<p>As easy as that I had an automated pipeline for data collection, cleaning and model training! However, from the very beginning of this project I wasn’t working alone, so while I was getting data and building models a good friend of mine <a href="https://twitter.com/dougaparry" title="doug">Doug</a> was building a web app to display the predictions. Once the app was up and running, all we needed to do was to figure out how it could get the model predictions. Enter Domino API Endpoints.</p>
+</div>
+<div id="using-domino-api-endpoints-for-prediction-requests" class="section level2">
+<h2>Using Domino API Endpoints for prediction requests</h2>
+<p>Domino’s API Endpoints enables you to have requests sent to R functions that you have written and uploaded to your project. <a href="http://www.programmableweb.com/news/how-to-turn-your-predictive-models-apis-using-domino/how-to/2015/07/22?page=2" title="domapi">This</a> post from <a href="http://blog.revolutionanalytics.com/" title="revolution Analytics">ProgrammableWeb</a> (again by <a href="http://www.jofaichow.co.uk/" title="jo">Jo-Fai Chow</a>) and <a href="https://twitter.com/DominoDataLab" title="nick">Nick’s</a> <a href="http://blog.revolutionanalytics.com/2014/08/using-r-inside-the-enterprise-integration-with-existing-systems.html" title="nick post">post</a> on <a href="http://www.programmableweb.com/" title="programmable web">Revolution Analytics</a> was all I needed to turn my predictive model into an API. The first step was to write a <em>predict_match</em> function inside an R script (given below) which takes as arguments the two teams and returns a prediction as a character string.</p>
+<pre class="r"><code>## Load Library
+library(caret)
+library(randomForest)
+
+## Load Pre-trained model
+model &lt;- readRDS(file = &quot;RWC_Prediction_Model.rda&quot;)
+
+## Load predictors
+teamStats &lt;- readRDS(file=&quot;teamStats.rda&quot;)
+rank &lt;- readRDS(&quot;rank.rda&quot;)
+rankScore &lt;- readRDS(&quot;rankScore.rda&quot;)
+rankChange &lt;- readRDS(&quot;rankChange.rda&quot;)
+
+## Create a function to take team name inputs
+## and then return a prediction for the match
+predict_match &lt;- function(homeTeam, awayTeam) {
+
+    teams &lt;- c(&quot;Namibia&quot;, &quot;South Africa&quot;, &quot;Argentina&quot;, &quot;Canada&quot;, &quot;United States&quot;,
+               &quot;Uruguay&quot;, &quot;Japan&quot;, &quot;England&quot;, &quot;France&quot;, &quot;Georgia&quot;, &quot;Ireland&quot;,
+               &quot;Italy&quot;, &quot;Romania&quot;, &quot;Scotland&quot;, &quot;Wales&quot;, &quot;Australia&quot;,
+               &quot;Fiji&quot;, &quot;New Zealand&quot;, &quot;Samoa&quot;, &quot;Tonga&quot;)
+
+    homeIndex &lt;- which(teams == homeTeam)
+    awayIndex &lt;- which(teams == awayTeam)
+
+    homeTeamStats &lt;- c(teamStats[[homeIndex]], rank[homeIndex], rankScore[homeIndex], rankChange[homeIndex])
+    awayTeamStats &lt;- c(teamStats[[awayIndex]], rank[awayIndex], rankScore[awayIndex], rankChange[awayIndex])
+
+    levelsx &lt;- levels(factor(teams))
+    levelsy &lt;- levels(factor(c(&quot;loose&quot;,&quot;win&quot;)))
+    newCase &lt;- read.csv(&quot;newCase.csv&quot;)
+    levels(newCase[,1]) &lt;- levelsy
+    levels(newCase[,2]) &lt;- levelsx
+    levels(newCase[,3]) &lt;- levelsx
+    newCase[1,2] &lt;- homeTeam
+    newCase[1,3] &lt;- awayTeam
+    newCase[1,4:27] &lt;- homeTeamStats
+    newCase[1,28:51] &lt;- awayTeamStats
+
+
+    ## Use the model for prediction
+    y_probs &lt;- predict(model, newCase, type=&quot;prob&quot;)
+
+    ## Return the predicted class
+    return(as.character(y_probs))
+
+}</code></pre>
+<p>The next step was to upload this script (in my case called <em>model_API.R</em>) to my Domino project.</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino3.png" alt="domino" />
+</p>
+
+<p>The final step was to publish the API (which is really easy with Domino). I simply had to navigate to the <em>API Endpoints</em> tab, enter the name of the R script containing the prediction function, enter the prediction functions name and hit the <em>publish</em> button!</p>
+
+<p>
+		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino4.png" alt="domino" />
+</p>
+
+<p>It’s alive!! (Frankenstein voice)</p>
+<p>So this is currently where the project is at. Now that all the necessary pieces of the puzzle are in place, on a daily basis the data is collected, the model retrain and prediction requests sent using some Python code very similar to the code given below.</p>
+<pre class="r"><code>import unirest
+import json
+import yaml
+
+homeTeam = 'South Africa'
+awayTeam = 'New Zealand'
+
+response = unirest.post(&quot;https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint&quot;,
+    headers={
+        &quot;X-Domino-Api-Key&quot;: &quot;MY_API_KEY&quot;,
+        &quot;Content-Type&quot;: &quot;application/json&quot;
+    },
+    params=json.dumps({
+        &quot;parameters&quot;: [homeTeam, awayTeam]
+    })
+)
+
+## Extract information from response
+response_data = yaml.load(response.raw_body)
+
+## Print Result only
+print &quot;Predicted:&quot;
+print response_data['result']</code></pre>
+<div id="conclusion" class="section level3">
+<h3>Conclusion</h3>
+<p>So there you have it.</p>
+<p>In summary, using <a href="https://www.dominodatalab.com/" title="Domino">Domino</a> together with <a href="https://www.r-project.org/" title="R">R</a> I was able to:</p>
+<ol style="list-style-type: decimal">
+<li>Write scripts to collect relevant Rugby data, perform exploratory analysis and select an appropriate model.</li>
+<li>Automate the data collection to happen on a daily basis as new match results become available.</li>
+<li>Automate the model training to happen after the data collection on daily basis.</li>
+<li>Use the API Endpoints to turn the trained models into APIs capable of receiving prediction requests.</li>
+<li>Automate the republishing of the API by ticking the <em>publish after complete</em> box when scheduling the training of the prediction model.</li>
+</ol>
+<p>If you are interested in seeing the model in action and getting your own prediction for a match, feel free to visit the <a href="http://rwcpredictor.herokuapp.com/" title="app">web app</a>.</p>
+<p>Finally, I would just like to thank <a href="https://twitter.com/DominoDataLab" title="nick">Nick</a> who suggested to me that I write this blog post. Maybe I will write a follow up post when the tournament is over when all the results are in. :)</p>
+<p>Until next time, all the best.</p>
+<p>Arnu</p>
+
 
 </div>
+</div>
+</div><!-- container arnu -->
+
+<div class="container doug">
+	<div id="header">
+	<h1 class="title">Building a web application to handle and display predictions for the 2015 Rugby World Cup</h1>
+	<h4 class="author"><em>Doug Parry</em></h4>
+	<h4 class="date"><em>17 September 2015</em></h4>
+	</div>
+
+	<p>For the sake of brevity, not all the relevant code is displayed in this
+		post but can rather be found
+		<a href="https://github.com/arnupretorius/RWCPrediction" title="github rwcPrediction">
+			here</a>.</p>
+
+	<div id="introduction" class="section level1">
+
+	<h1>Introduction</h1>
+	<p>The Rugby World Cup (RWC) is here! With many fans around the world excited to see the action unfold over the next month and a half.</p>
+	<p>If you’ve never heard of the sport, <a href="http://www.whatisrugby.com/rugby-basics/rubgy-overview/" title="What is rugby">whatisrugby.com</a> provides the following short description:</p>
+	<blockquote>
+	<p>Rugby is a free-flowing game that features a combination of strength, speed and strategy to move a ball into an opponents territory. Rugby is a full-contact sport yet players wear little-or no protective gear.</p>
+	</blockquote>
+	<blockquote>
+		<p>
+			Rugby is often described as a hooligans game, played by gentlemen.
+		</p>
+	</blockquote>
+	<p>In this blog post I intend to go through the steps I took to build web application
+		 	to handle and display our predictions for the 2015 rugby world cup. These predictions are arrived
+			at using the machine learning model described in the statistics section of this page.
+			The github repository for this model may be viewed
+			 <a href="https://github.com/arnupretorius/RWCPrediction" title="github rwcPrediction">
+				here</a>. Don’t feel like reading it all?
+			 Feel free to skip to the sections you are most interested in.</p>
+	<ul>
+	<li>Part 1: <a href="#tech-stack">Technology Stack</a></li>
+	<li>Part 2: <a href="#getting-the-predictions">Getting the predictions</a></li>
+	<li>Part 3: <a href="#automation">Automating the process</a></li>
+	<li>Part 4: <a href="#creating-page-structure">Creating the page structure</a></li>
+	<li>Part 5: <a href="#displaying-the-predictions">Displaying the predictions</a></li>
+	<li>Part 6: <a href="#extras">Extra Features</a></li>
+	<li>Part 6: <a href="#conclusion">Conclusion</a></li>
+	</ul>
+</div><!--Introduction -->
+
+<div id="tech-stack" class="section level2">
+		<h2>Technology Stack</h2>
+
+		<p>
+			I chose to develop this web application using python and the <a href="https://www.djangoproject.com/">Django</a>
+			web application framework because I am most familiar and experienced with
+			development in those languages/frameworks. In addition to these technologies,
+			the application was developed with Javascript, HTML5, CSS (with a bootstrap framework)
+			and some jquery. <p>
+
+			<p>Similarly, I chose to host the application on <a href="https://www.heroku.com/">Heroku</a> because
+			it is well suited to the framework within which I am working as well as my familiarity with the platform and its general ease of use.
+			In my experience, heroku is an awesome and simple to use platform as a service (PaaS), providing many helpful
+			fucntionalities and add-ons - aiding the development process. For persistent storage I chose
+			to go with <a href="https://aws.amazon.com/s3/">AWS S3</a> because it provides a bit more flexibility and works seamlessly with Heroku.</p>
+
+			<p>
+				Other technologies used for various reasons (to be explained) include:
+			</p>
+			<ul>
+				<li>Beautiful Soup</li>
+				<li>Boto</li>
+				<li>Gunicorn</li>
+				<li>pyYaml</li>
+				<li>Unirest</li>
+				<li>The Heroku scheduler add-on</li>
+			</ul>
+</div>
+
+<div id="getting-the-predictions" class="section level2">
+		<h2>Getting the predictions</h2>
+</div>
+
+<div id="automation" class="section level2">
+		<h2>Automating the process</h2>
+</div>
+
+<div id="creating-page-structure" class="section level2">
+		<h2>Creating the page structure</h2>
+</div>
+
+<div id="displaying-the-predictions" class="section level2">
+		<h2>Displaying the predictions</h2>
+</div>
+
+<div id="extras" class="section level2">
+		<h2>Extra Features</h2>
+
+		<h3>Twitter integration</h3>
+
+		<h3>Time-based scrolling</h3>
+</div>
+
+<div id="conclusion" class="section level2">
+		<h2>Conclusion</h2>
+</div>
+
+</div> <!-- col -->
+</div> <!-- row -->
 
 
 {% endblock %}
