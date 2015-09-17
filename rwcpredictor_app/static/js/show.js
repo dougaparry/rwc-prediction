@@ -11,6 +11,7 @@ function showPrediction(game, prob1, prob2, teamA, teamB){
   }
 }
 
+
 // Function to determine which game to scroll to
 // compares the current date to any of the upcoming ones,
 // scrolling to the next most likely game

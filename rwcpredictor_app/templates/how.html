@@ -11,11 +11,11 @@
 <div class="container">
 	<div class="row">
 		<div class="col-xs-6">
-			<h4 class="text-center"><button type="button" class="btn btn-default btn-lg btn-block" >Statistics</button></h4>
+			<h4 class="text-center"><a href="#stats" class="btn btn-default btn-lg btn-block" id="stats" role="button">Statistics</a>
 </div>
 
 		<div class="col-xs-6">
-			<h4 class="text-center"><button type="button" class="btn btn-default btn-lg btn-block" >Web</button></h4>
+			<h4 class="text-center"><a href="#doug" class="btn btn-default btn-lg btn-block" role="button">Web</a>
 		</div>
 				</div>
 
@@ -28,7 +28,7 @@
 <div class="row">
 	<div class="col-xs-12">
 
-<div class="container arnu">
+<div class="container arnu" id = "arnu">
 	<div id="header">
 	<h1 class="title">Predicting the future of the 2015 Rugby World Cup using Domino and R.</h1>
 	<h4 class="author"><em>Arnu Pretorius</em></h4>
@@ -349,7 +349,7 @@ print response_data['result']</code></pre>
 <p>If you are interested in seeing the model in action and getting your own prediction for a match, feel free to visit the <a href="http://rwcpredictor.herokuapp.com/" title="app">web app</a>.</p>
 <p>Finally, I would just like to thank <a href="https://twitter.com/DominoDataLab" title="nick">Nick</a> who suggested to me that I write this blog post. Maybe I will write a follow up post when the tournament is over when all the results are in. :)</p>
 <p>Until next time, all the best.</p>
-<p>Arnu</p>
+<p id="doug">Arnu</p>
 
 
 </div>
@@ -362,11 +362,6 @@ print response_data['result']</code></pre>
 	<h4 class="author"><em>Doug Parry</em></h4>
 	<h4 class="date"><em>17 September 2015</em></h4>
 	</div>
-
-	<p>For the sake of brevity, not all the relevant code is displayed in this
-		post but can rather be found
-		<a href="https://github.com/arnupretorius/RWCPrediction" title="github rwcPrediction">
-			here</a>.</p>
 
 	<div id="introduction" class="section level1">
 
@@ -381,7 +376,7 @@ print response_data['result']</code></pre>
 			Rugby is often described as a hooligans game, played by gentlemen.
 		</p>
 	</blockquote>
-	<p>In this blog post I intend to go through the steps I took to build web application
+	<p>In this blog post I intend to go through the steps I took to build the web application
 		 	to handle and display our predictions for the 2015 rugby world cup. These predictions are arrived
 			at using the machine learning model described in the statistics section of this page.
 			The github repository for this model may be viewed
@@ -426,22 +421,207 @@ print response_data['result']</code></pre>
 				<li>Unirest</li>
 				<li>The Heroku scheduler add-on</li>
 			</ul>
+
+			<h3>Brief Summary</h3>
+			<p>
+				In brief: A machine learning model was created and run on Domino data labs, from this model an API was created. A web application was then created and hosted
+				on Heroku. This web application runs a scheduler which calls the API, saving the output persistently to AWS S3. This was then called and displayed on the application using python, django, javascript and bootstrap.
+			</p>
 </div>
 
 <div id="getting-the-predictions" class="section level2">
 		<h2>Getting the predictions</h2>
+
+		<p>
+			As Arnu explained in the <em>Statistics post,</em> we have used a machine-learning based
+			technique to generate predictions for each match-up in the rugby world cup. The computations for this
+			model are conducted on the cloud computing service <a href="https://www.dominodatalab.com/">Domino</a>.
+			On Domino we have created an API which recieves 2 teams as inputs and then returns the probabilities of winning for each of the teams
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino4.png" alt="domino" />
+		</p>
+
+		<p>
+			In order to get the predictions from this API, the following function is employed.
+			This function takes in two team names and sends them to the API using unirest.
+			The response is then handled using yaml and returned for further use elsewhere.
+		</p>
+
+<pre class="python"><code>def receiveProbs(teamA, teamB):
+		response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
+		    headers={
+		        "X-Domino-Api-Key": "MY_APLI_KEY",
+		        "Content-Type": "application/json" },
+		    params=json.dumps({
+		        "parameters": [teamA, teamB]}))
+
+		response_data = yaml.load(response.raw_body)
+		probability = response_data['result']
+		return probability</code></pre>
+
+	<p>
+		In order to provide the above function with the correct teams for each match up, all
+		of the fixtures have to be gathered and cleaned. The following 2 functions handle these processes.
+		The first function geData(url) sends a request to the provided url. It then uses BeautifulSoup to
+		clean this response and select only the data that is needed, returning this data as a list when it is called.
+		The second function calls geData(url) passing the url to the location for the RWC 2015 fixtures. The second part
+		of this function is mostly concerned with cleaning up the data and ordering it in the correct way.
+	</p>
+
+<pre class="python"><code>def getData(url):
+    r = unirest.get(url)
+    data = BeautifulSoup(r.raw_body,"lxml")
+    cells= data.find_all("td",{"class":"cellfirst"})
+    return cells
+
+def fixtures():
+    url = "http://www.supersport.com/rugby/rugby-world-cup/fixtures"
+    data = getData(url)
+
+    fixtures = list()
+
+    i = 0
+    j = 1
+
+    while i < len(data):
+        if j <= 21 and data[i+1].text == "USA":
+            data[i+1] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+        elif j <= 21 and data[i+3].text == "USA":
+            data[i+3] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+        elif j <= 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+        elif j > 21 and data[i+1].text == "USA":
+            data[i+1] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1], data[i+3].text,data[i+4].text])
+        elif j > 21 and data[i+3].text == "USA":
+            data[i+3] = "United States"
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3],data[i+4].text])
+        elif j > 21 and data[i+1].text != "USA" and data[i+3].text != "USA":
+            fixtures.append([j,data[i].text + '/09/15',data[i+5].text,data[i+1].text, data[i+3].text,data[i+4].text])
+
+        j +=1
+        i +=7
+    return fixtures
+</code></pre>
+
+<p>Finally! Now we have the fixtures and all of the information for each game, now we can set about getting the probabilities.
+	This process involves looping through the list of each fixtures and foreach element in this list calling the getProbabilities() function
+	shown above. The probabilities recieved as a response are then append to the particular element. Following this, the fixture information with
+	probabilities now needs to be stored in a more permanent way than a list. I chose to store this information in a CSV file because of the ease at which
+	they can be created, edited and sent to different locations - as well as there small size. The following function was emplpoyed to write the list to a CSV.
+</p>
+
+<pre class="python"><code>def writeCSV(list):
+    with open('predictions.csv','w') as csvfile:
+        writer = csv.writer(csvfile, delimiter = ',')
+        for item in list:
+            writer.writerow(item)
+</code></pre>
+
+<p>
+	The CSV file looks like this
+</p>
+
+<p>
+			<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/csv.png" alt="csv file" />
+</p>
+
+<p>
+	Following this, the newly created CSV file can be uploaded to the AWS S3 bucket for this application. In order to do this the tool boto has been used.
+	Boto allows for really simple interaction with Amazon's services. In addition to this, by using boto and heroku, the interaction process with AWS S3 is simplified and painless.
+	For security reasons, a new IAM was created with a unique ID and special_key just for this process. For security reasons, this information should never be stored
+	progromatically. luckily, heroku allows one to store this information in a config file which is used to define the virtual environment. When boto communicates with AWS, it
+	then just pulls these values from the heroku environment. Uploading the CSV file to the S3 bucket is conducted in teh function displayed below.
+</p>
+
+<pre class+"python"><code>def upload():
+    s3 = boto3.resource('s3')
+
+    data = open('predictions.csv', 'rb')
+    s3.Bucket('rwcbucket').put_object(Key='predictions.csv', Body=data)
+</code></pre>
+
 </div>
 
 <div id="automation" class="section level2">
 		<h2>Automating the process</h2>
+
+		<p>
+			The process described above; getting the fixtures information, getting the probabilities for each fixture, creating the CSV and uploading to
+			the AWS S3 bucket is run automatically, on a schedule once a day. This is done because the machine-learning model retrains itself following each
+			game or when new information is available. By doing this, the probabilities displayed are fresh and take the most recent information into account.
+			The Heroku scheduler add-on is used to run this python script at a set time each day.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/scheduler.png" alt="heroku scheduler add-on" />
+		</p>
 </div>
 
 <div id="creating-page-structure" class="section level2">
 		<h2>Creating the page structure</h2>
+
+		<p>
+			The front-end structure of the web app is fairly simple with the django framework guiding the use of views to recieve the data and call
+			a set of templates for each page in the application. For the home page, displaying all of the predictions, boto is used once again to call the CSV style stored on
+			AWS S3 and feed this in to a list which is passed to the template as a dictionary value. Similarly the standard Django process of using URL handlers reading regular expressions
+			handles all urls and calls the functions in the view.
+		</p>
+
+		<p>
+			As with most django applications, a base file has been created which handles all of the neccessary head content and calls
+			to the various scripts and static files required. The home page then extends this base page, slotting in when called.
+			For simplicity's sake, the entire main page is constructed using a series of loops, generating the content.
+			The bootstrap column layout has been employed to structure the content of the page. When all is said and done, this page comes to 4036 lines of code,
+			generated by only 80 lines. This code can be seen below.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/home1.png" alt="home template" />
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/home2.png" alt="home template" />
+		</p>
+
+		<p>
+			This code generates a series of 'cards' looking like this, for each game.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/homecard.png" alt="home card" />
+		</p>
+
 </div>
 
 <div id="displaying-the-predictions" class="section level2">
 		<h2>Displaying the predictions</h2>
+		<p>
+			As can be seen from the previous image, a button is displayed allowing users to see the prediction for the particular match-up.
+			When this button is clicked, a javascript function is run, setting the bottom half of the 'card' to be visible, showing the prediction
+			and the tweet button. The code calling this function, passing the game number, the names of the 2 teams and the probabilities for each team is displayed above.
+			When this is called, the following javascript function runs. This function simply changes the chosen element's class names to a new one, without the hidden attribute.
+		</p>
+		<pre><code>function showPrediction(game, prob1, prob2, teamA, teamB){
+		document.getElementById(game+"-1").className = "text-center";
+		document.getElementById(game+"-2").className = "text-center";
+		document.getElementById(game+"-3").className = "text-center";
+
+		if (prob1 > prob2){
+			  document.getElementById(game+teamA).style.color = "green";
+			} else {
+			  document.getElementById(game+teamB).style.color = "green";
+			}
+		}</code></pre>
+
+		<p>
+			Once this script has run, the 'card' then looks like this.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/after.png" alt="home card" />
+		</p>
 </div>
 
 <div id="extras" class="section level2">
@@ -449,15 +629,230 @@ print response_data['result']</code></pre>
 
 		<h3>Twitter integration</h3>
 
+		<p>
+			We decided that integrating the application with twitter would be a cool way to promote it and incentivise people to use the application.
+			The following code was used to generate tweet buttons, dynamic for each game of the RWC. This code calls some javascript, necessary to run it properly.
+			As can be seen, each tweet is perfectly tailored for each result. Our hope with this is that through leveraging twitter, we can gain some social media attention.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/tweet1.png" alt="tweet" />
+		</p>
+
+		<p>
+			Upon clicking the tweet button, the following screen is displayed.
+		</p>
+
+		<p>
+					<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/tweet2.png" alt="tweet" />
+		</p>
+
 		<h3>Time-based scrolling</h3>
+
+		<p>
+			A further extra feature included in the application is the functionality to scroll to the next game. We thought this would be a good idea because there
+			are so many games, making it difficult for people to scroll down and find the next game. The following javascript functions achieved this.
+		</p>
+
+		<pre><code>// Function to determine which game to scroll to
+		// compares the current date to any of the upcoming ones,
+		// scrolling to the next most likely game
+
+		function determine(){
+		  var currentTime = new Date();
+		  var games = [];
+
+		  var game1 = new Date('September 18, 2015 21:00:00');
+		  games.push(game1);
+		  var game2 = new Date('September 19, 2015 13:00:00');
+		  games.push(game2);
+		  var game3 = new Date('September 19, 2015 15:30:00');
+		  games.push(game3);
+		  var game4 = new Date('September 19, 2015 17:45:00');
+		  games.push(game4);
+		  var game5 = new Date('September 19, 2015 21:00:00');
+		  games.push(game5);
+		  var game6 = new Date('September 20, 2015 13:00:00');
+		  games.push(game6);
+		  var game7 = new Date('September 20, 2015 15:30:00');
+		  games.push(game7);
+		  var game8 = new Date('September 20, 2015 17:45:00');
+		  games.push(game8);
+		  var game9 = new Date('September 23, 2015 15:30:00');
+		  games.push(game9);
+		  var game10 = new Date('September 23, 2015 17:45:00');
+		  games.push(game10);
+		  var game11 = new Date('September 23, 2015 21:00:00');
+		  games.push(game11);
+		  var game12 = new Date('September 24, 2015 21:00:00');
+		  games.push(game12);
+		  var game13 = new Date('September 25, 2015 17:45:00');
+		  games.push(game13);
+		  var game14 = new Date('September 26, 2015 15:30:00');
+		  games.push(game14);
+		  var game15 = new Date('September 26, 2015 17:45:00');
+		  games.push(game15);
+		  var game16 = new Date('September 26, 2015 21:00:00');
+		  games.push(game16);
+		  var game17 = new Date('September 27, 2015 13:00:00');
+		  games.push(game17);
+		  var game18 = new Date('September 27, 2015 15:30:00');
+		  games.push(game18);
+		  var game19 = new Date('September 27, 2015 17:45:00');
+		  games.push(game19);
+		  var game20 = new Date('September 29, 2015 17:45:00');
+		  games.push(game20);
+		  var game21 = new Date('October 1, 2015 17:45:00');
+		  games.push(game21);
+		  var game22 = new Date('October 1, 2015 21:00:00');
+		  games.push(game22);
+		  var game23 = new Date('October 2, 2015 21:00:00');
+		  games.push(game23);
+		  var game24 = new Date('October 3, 2015 15:30:00');
+		  games.push(game24);
+		  var game25 = new Date('October 3, 2015 17:45:00');
+		  games.push(game25);
+		  var game26 = new Date('October 3, 2015 21:00:00');
+		  games.push(game26);
+		  var game27 = new Date('October 4, 2015 15:30:00');
+		  games.push(game27);
+		  var game28 = new Date('October 4, 2015 17:45:00');
+		  games.push(game28);
+		  var game29 = new Date('October 6, 2015 17:45:00');
+		  games.push(game29);
+		  var game30 = new Date('October 6, 2015 21:00:00');
+		  games.push(game30);
+		  var game31 = new Date('October 7, 2015 17:45:00');
+		  games.push(game31);
+		  var game32 = new Date('October 7, 2015 21:00:00');
+		  games.push(game32);
+		  var game33 = new Date('October 9, 2015 21:00:00');
+		  games.push(game33);
+		  var game34 = new Date('October 10, 2015 15:30:00');
+		  games.push(game34);
+		  var game35 = new Date('October 10, 2015 17:45:00');
+		  games.push(game35);
+		  var game36 = new Date('October 10, 2015 21:00:00');
+		  games.push(game36);
+		  var game37 = new Date('October 11, 2015 13:00:00');
+		  games.push(game37);
+		  var game38 = new Date('October 11, 2015 15:30:00');
+		  games.push(game38);
+		  var game39 = new Date('October 11, 2015 17:45:00');
+		  games.push(game39);
+		  var game40 = new Date('October 11, 2015 21:00:00');
+		  games.push(game40);
+
+		  var returnVar = 0;
+
+		  for(i = 0; i < 40; i++){
+		    if(currentTime.getTime() < games[i].getTime()){
+		        returnVar = i+1;
+		        break;
+		    }
+		  }
+		  return returnVar;
+		}
+
+		// helper function to improve cross browser support when determining the
+		// current position
+
+		function currentYPosition() {
+		    // Firefox, Chrome, Opera, Safari
+		    if (self.pageYOffset) return self.pageYOffset;
+		    // Internet Explorer 6 - standards mode
+		    if (document.documentElement && document.documentElement.scrollTop)
+		        return document.documentElement.scrollTop;
+		    // Internet Explorer 6, 7 and 8
+		    if (document.body.scrollTop) return document.body.scrollTop;
+		    return 0;
+		}
+
+		//Function to determine the position of the destination element
+
+		function elmYPosition(eID) {
+		    var elm = document.getElementById(eID);
+		    var y = elm.offsetTop;
+		    var node = elm;
+		    while (node.offsetParent && node.offsetParent != document.body) {
+		        node = node.offsetParent;
+		        y += node.offsetTop;
+		    } return y;
+		}
+
+		//Function to do the scrolling
+
+		function smoothScroll() {
+		    var eID = determine() + "-show";
+		    var startY = currentYPosition();
+		    var stopY = elmYPosition(eID);
+		    var distance = stopY > startY ? stopY - startY : startY - stopY;
+		    if (distance < 100) {
+		        scrollTo(0, stopY); return;
+		    }
+		    var speed = Math.round(distance / 100);
+		    if (speed >= 20) speed = 20;
+		    var step = Math.round(distance / 25);
+		    var leapY = stopY > startY ? startY + step : startY - step;
+		    var timer = 0;
+		    if (stopY > startY) {
+		        for ( var i=startY; i<stopY; i+=step ) {
+		            setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
+		            leapY += step; if (leapY > stopY) leapY = stopY; timer++;
+		        } return;
+		    }
+		    for ( var i=startY; i>stopY; i-=step ) {
+		        setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
+		        leapY -= step; if (leapY < stopY) leapY = stopY; timer++;
+		    }
+		    return false;
+		}</code></pre>
+
+		<h3>Google Analytics</h3>
+
+		<p>
+			Finally, google analytics functionality was included so that we can learn about the users of the website.
+		</p>
 </div>
 
 <div id="conclusion" class="section level2">
 		<h2>Conclusion</h2>
+
+		<p>
+			Ok, so that was a lot to take in.
+		</p>
+		<p>
+			In conclusion, we created a machine learning model, that generated predictions for games for the 2015 rugby world cup. This model was then called
+			on a schedule with teh results being stored on AWS S3. these results were then called and displayed on a web app hosted on heroku.
+		</p>
+
+		<p>
+			I hope you have enjoyed this write up, and enjoy using the RWC2015 predictor.
+		</p>
+		<p>
+		Doug
+		</p>
 </div>
+</div> <!--doug-->
+
+
+
 
 </div> <!-- col -->
 </div> <!-- row -->
 
+<div class="container">
+	<div class="row">
+		<div class="col-xs-6">
+			<h4 class="text-center"><a href="#stats" class="btn btn-default btn-lg btn-block" id="stats" role="button">Statistics</a>
+</div>
+
+		<div class="col-xs-6">
+			<h4 class="text-center"><a href="#doug" class="btn btn-default btn-lg btn-block" role="button">Web</a>
+		</div>
+				</div>
+
+				<hr>
+</div>
 
 {% endblock %}
