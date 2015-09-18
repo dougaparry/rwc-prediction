@@ -83,21 +83,21 @@
 	<pre class="r"><code># load data
 	data &lt;- readRDS(&quot;RWCData.rda&quot;)
 
-	# Correlation heat map of the training dat
-	library(ggplot2)
-	library(reshape2)
-	dataCor &lt;- data
-	dataCor &lt;- cbind(as.numeric(data[,1]), as.numeric(data[,2]), as.numeric(data[,3]),
-	                 as.numeric(data[,4]), as.numeric(data[,5]), data[,-c(1,2,3,4,5)])
+# Correlation heat map of the training dat
+library(ggplot2)
+library(reshape2)
+dataCor &lt;- data
+dataCor &lt;- cbind(as.numeric(data[,1]), as.numeric(data[,2]), as.numeric(data[,3]),
+                 as.numeric(data[,4]), as.numeric(data[,5]), data[,-c(1,2,3,4,5)])
 
-	colnames(dataCor) &lt;- colnames(data)
-	title &lt;- &quot;Rugby training data correlation heat map&quot;
-	corp &lt;- qplot(x=Var1, y=Var2, data=melt(cor(dataCor, use=&quot;p&quot;)), fill=value, geom=&quot;tile&quot;) +
-	      scale_fill_gradient2(limits=c(-1, 1))
-	corp &lt;- corp + theme(axis.title.x=element_blank(), axis.text.x=element_blank()
-	                     , axis.ticks=element_blank())
-	corp &lt;- corp + ggtitle(title)
-	corp</code></pre>
+colnames(dataCor) &lt;- colnames(data)
+title &lt;- &quot;Rugby training data correlation heat map&quot;
+corp &lt;- qplot(x=Var1, y=Var2, data=melt(cor(dataCor, use=&quot;p&quot;)), fill=value, geom=&quot;tile&quot;) +
+	    scale_fill_gradient2(limits=c(-1, 1))
+corp &lt;- corp + theme(axis.title.x=element_blank(), axis.text.x=element_blank()
+	                    , axis.ticks=element_blank())
+corp &lt;- corp + ggtitle(title)
+corp</code></pre>
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/heat.png" alt="wikiworld rankings" />
@@ -146,12 +146,6 @@ rf &lt;- train(x=train[,-1], y=train[,1], method=&quot;rf&quot;, ntree=200, trCo
 end.time &lt;- Sys.time()
 time.taken.rf &lt;- end.time - start.time</code></pre>
 
-
-
-
-
-
-
 <table class="table">
     <thead>
       <tr>
@@ -185,10 +179,6 @@ time.taken.rf &lt;- end.time - start.time</code></pre>
 </p>
 
 <p>RF and ORF both produce <a href="https://en.wikipedia.org/wiki/Posterior_probability" title="post probs">posterior (after the data has been taken into account) probabilities</a> for observations to belong to a certain class. In a binary case, such as whether a team is going to loose or win a match, a threshold can be set (say 0.5) and if the posterior probability is above this threshold we classify to the “win”&quot; class, otherwise if it is below the threshold we classify to the “loose” class. The ROC curve shows the <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">false positive rate</a> (fraction of matches a team wins incorrectly classified as a loss) and <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">true positive rate</a> (fraction of matches a team won correctly classified as a win) for a sequence of thresholds from 0 to 1. Simply put, the classifier with a corresponding ROC curve that most closely hugs the top left corner of the plot as it arcs from the bottom left to the top right is considered to have the highest predictive power. So the two models seemed to be fairly similar. Lastly, the hold out test set was used to obtain the test accuracy of each model, given below.</p>
-
-
-
-
 
 <table class="table">
     <thead>
