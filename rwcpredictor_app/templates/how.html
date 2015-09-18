@@ -35,7 +35,6 @@
 	<h4 class="date"><em>08 September 2015</em></h4>
 	</div>
 
-
 	<p>For the sake of brevity, not all the relevant data and code are displayed in this post but can rather be found <a href="https://github.com/arnupretorius/RWCPrediction" title="github rwcPrediction">here</a>.</p>
 	<div id="introduction" class="section level1">
 	<h1>Introduction</h1>
@@ -57,6 +56,7 @@
 	<div id="getting-the-data" class="section level2">
 	<h2>Getting the data</h2>
 	<p>As with many machine learning undertakings the first step was to collect the data. I found a good source of rugby data at <a href="http://www.rugbydata.com/" title="Rugbydata">rugbydata.com</a>. For each of the 20 teams in the RWC I collected some general historical team statistics and past matches stretching back to the beginning of 2013 (shown below for South Africa).</p>
+
 	<p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/getting.png" alt="getting the data" />
 	</p>
@@ -64,10 +64,13 @@
 	<p>Only the matches between teams that are actually going to compete in the tournament were kept. In addition, tied matches were discarded. The first reason for this is due to the fact that in rugby a tied match is a fairly rare occurrence. The second, is that I was more concerned with predicting a win or a loss, the outcomes most fans care about, rather than also being able to predict match ties.</p>
 	<p>As another data source I collected the rankings of each team as well as their recent change in rank from <a href="http://wrr.live555.com/" title="rankings">this site</a> (shown below).</p>
 
+
 	<p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/world.png" alt="world rankings" />
 	</p>
+
 	<p>Finally, connected to team rankings are ranking points that I managed to find on a <a href="https://en.wikipedia.org/wiki/World_Rugby_Rankings" title="wiki">world rugby rankings</a> Wikipedia page.</p>
+
 	<p>
 			<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/wiki.png" alt="heatmap" />
 	</p>
@@ -78,12 +81,14 @@
 	<h2>Exploring the data</h2>
 	<p>Now that the data was in the bag, it was time to go explore! As a quick overview of the data I looked at a <a href="http://www.r-bloggers.com/using-r-correlation-heatmap-take-2/" title="corr heat map">heat map of the correlation</a> between all the variables.</p>
 	<pre class="r"><code># load data
-	data &lt;- read.csv(&quot;RWCData.csv&quot;)
+	data &lt;- readRDS(&quot;RWCData.rda&quot;)
 
-	# Correlation heat map of the training data
+	# Correlation heat map of the training dat
 	library(ggplot2)
 	library(reshape2)
-	dataCor &lt;- cbind(as.numeric(data[,1]), as.numeric(data[,2]), as.numeric(data[,3]), data[,-c(1,2,3)])
+	dataCor &lt;- data
+	dataCor &lt;- cbind(as.numeric(data[,1]), as.numeric(data[,2]), as.numeric(data[,3]),
+	                 as.numeric(data[,4]), as.numeric(data[,5]), data[,-c(1,2,3,4,5)])
 
 	colnames(dataCor) &lt;- colnames(data)
 	title &lt;- &quot;Rugby training data correlation heat map&quot;
@@ -93,34 +98,27 @@
 	                     , axis.ticks=element_blank())
 	corp &lt;- corp + ggtitle(title)
 	corp</code></pre>
-</div>
+
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/heat.png" alt="wikiworld rankings" />
 </p>
 
 <p>A dark blue square indicates a strong positive correlation between two variables and a dark red square a strong negative correlation. As I sort of expected many of the variables seemed to be correlated with each other (such as the average points scored against a team at home and the number of games the team lost at home). Nevertheless, in the first column of the heat map I was able find the degree of correlation between all the variables (indexed by the rows) with the outcome of the match. The rank of the home and away team seemed to be fairly correlated with the match outcome when compared to the other variables. So I took a closer look.</p>
-
 <pre class="r"><code>ggplot(data, aes(RankAway, RankHome, color=Outcome)) + geom_point() + geom_smooth()</code></pre>
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/plot.png" alt="plot" />
 </p>
-<p>Since the <em>Outcome</em> variable was coded to indicate whether the home team won or lost, I could clearly see that more winning matches were associated with the higher ranked teams playing at home. (It was also interesting to see my lack of data on poorly ranked teams.)</p>
+
+<p>Since the <em>Outcome</em> variable was coded to indicate whether the home team won or lost, I could clearly see that more winning matches were associated with higher ranked teams playing at home. After a little further exploration (not shown here), I had hope that at least some of the variables might have some discriminatory power when used in a model.</p>
 </div>
 <div id="model-selection" class="section level2">
 <h2>Model selection</h2>
-<p>I started off by splitting the data into a training and test set using the <a href="http://topepo.github.io/caret/index.html" title="caret">classification and regression training (caret) package</a> in R. This is an extremely powerful and handy package capable of performing many machine learning tasks from data pre-processing and splitting to model training, tuning and variable selection.</p>
-<pre class="r"><code># Load libraries
-library(caret)
-library(randomForest)
-
-# split data
-set.seed(123)
-trainIndex &lt;- createDataPartition(data[,1], p = .7,
-                                  list = FALSE,
-                                  times = 1)
-train &lt;- data[trainIndex,]
-test  &lt;- data[-trainIndex,]</code></pre>
+<p>I started off by splitting the data into a training and test set. Since the aim is to predict matches happening in the world cup, which is taking place in the second half of 2015, I selected as my test set every second match from the start of 2015 until the most recent match. All the remaining matches were used for training.</p>
+<pre class="r"><code># create training and test set
+testIndex &lt;- seq(360,400,2)
+train &lt;- data[-testIndex,]
+test &lt;- data[testIndex,]</code></pre>
 <p>Due to its general good performance, ease of training and amenability for parallel processing, like many others I chose the <a href="https://en.wikipedia.org/wiki/Random_forest" title="rf">Random Forest</a> (RF) classifier as a good place to start. A Random Forest for classification is an ensemble of <a href="https://en.wikipedia.org/wiki/Decision_tree_learning" title="class trees">classification trees</a> each built using a bootstrap sample of the observations and only allowing a random subset of variables for selection at each node split. The final classification takes the form of a majority vote. For a great introduction to classification trees and Random Forests take a look at <a href="https://class.coursera.org/bigdataschool-001/wiki/Day_8" title="RF slides">these slide</a> by Thomas Fuchs. In addition, I also investigated the performance of <a href="https://www.google.co.za/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;cad=rja&amp;uact=8&amp;ved=0CCEQFjAAahUKEwiX5P3Zv_bHAhVD6RQKHXhQBhg&amp;url=http%3A%2F%2Fpeople.csail.mit.edu%2Fmenze%2Fpapers%2Fmenze_11_oblique.pdf&amp;usg=AFQjCNFp_luWSlWHAKcZ5FoGta_4WSZzKg&amp;sig2=h_oL4JqZyKAcopJTykMw-At" title="orf">Oblique Random Forests</a> (ORF).</p>
 <p>Normally the classification trees used in Random Forests split the variable space using orthogonal (perpendicular to the variable axis) splits, whereas Oblique Random Forests use some linear combination of the variables for splitting. Oblique trees are better suited for splitting a space consisting of many correlated variables, therefore I thought the Oblique Random Forest might perform better on the rugby data. Furthermore, many different linear classifiers can be used to produce the linear combinations used for splitting. I ended up using <a href="https://en.wikipedia.org/wiki/Partial_least_squares_regression" title="PLS">Partial Least Squares</a> (PLS).</p>
 <p>The tuning parameter associated with the Random Forest and Oblique Random Forest is the size of the subset of randomly selected variables used at each node split. The following code sets up a tuning grid consisting of several different sizes of this subset and specifies the method used to train the model, in this case 5-fold <a href="chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/http://research.cs.tamu.edu/prism/lectures/iss/iss_l13.pdf" title="CV">cross-validation (CV)</a>.</p>
@@ -129,20 +127,29 @@ library(doParallel)
 cl &lt;- makeCluster(8)
 registerDoParallel(cl)
 
+# Load libraries
+library(caret)
+library(randomForest)
+
 # Model tuning grids
-rfGrid &lt;-  expand.grid(mtry = c(1, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50))
+rfGrid &lt;-  expand.grid(mtry = c(1, 7, 14, 27, 40, 53))
 
 # Tune using 5-fold cross-validation
 fitControl &lt;- trainControl(method = &quot;cv&quot;,
                            number = 5,
                            repeats = 1)</code></pre>
-<p>To train the models I used the <em>train</em> function from the caret package with the <em>method</em> argument set to “rf” for Random Forests and “ORFpls” for Oblique Random Forest using PLS for node splits. Below is the code for a RF using 1000 trees (with extra code bits to store the time it took to train the model).</p>
+<p>To train the models I used the <em>train</em> function from the <a href="http://topepo.github.io/caret/index.html" title="caret">classification and regression training (caret) package</a> in R. This is an extremely powerful and handy package capable of performing many machine learning tasks from data pre-processing and splitting to model training, tuning and variable selection. To train a Random Forest set the <em>method</em> argument to “rf” and for an Oblique Random Forest with PLS node splits set it to “ORFpls”. Below is the code for a RF using 1000 trees (with extra code bits to store the time it took to train the model).</p>
 <pre class="r"><code># Random Forests
 start.time &lt;- Sys.time()
-set.seed(1)
-rf &lt;- train(x=train[,-1], y=train[,1], method=&quot;rf&quot;, ntree=1000,trControl=fitControl, tuneGrid=rfGrid, importance=TRUE)
+set.seed(2)
+rf &lt;- train(x=train[,-1], y=train[,1], method=&quot;rf&quot;, ntree=200, trControl=fitControl, tuneGrid=rfGrid, importance=TRUE)
 end.time &lt;- Sys.time()
 time.taken.rf &lt;- end.time - start.time</code></pre>
+
+
+
+
+
 
 
 <table class="table">
@@ -155,28 +162,33 @@ time.taken.rf &lt;- end.time - start.time</code></pre>
     <tbody>
       <tr>
         <td>Random Forest</td>
-        <td>8.58 secs</td>
+        <td>14.32 secs</td>
       </tr>
       <tr>
         <td>Oblique RF pls</td>
-        <td>26.19 mins</td>
+        <td>6.93 mins</td>
       </tr>
     </tbody>
   </table>
 
-<p>The training time was 8.58 seconds for the RF and 26.19 minutes for the ORF, meaning that the ORF took roughly 183 times longer to train! This is because at each split for ORF a PLS model is fitted instead of a less computationally intense orthogonal split used in RF. The plot below shows the CV accuracy of each model for a different subset size of randomly selected variables as well as standard deviation bounds.</p>
+	<p>The training time was 14.32 seconds for the RF and 6.93 minutes for the ORF, meaning that the ORF took roughly 29 times longer to train. This is because at each split for ORF a PLS model is fitted instead of a less computationally intense orthogonal split used in RF. The plot below shows the CV accuracy of each model for a different subset size of randomly selected variables as well as standard deviation bounds.</p>
+
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/plot2.png" alt="plot" />
 </p>
 
-<p>Both models seemed to prefer small subset sizes (for the RF 7 and ORF 10) with the ORF outperforming the RF when the subset sizes were optimal for each model. However, the accuracy computed in this way (only using the training data) is not a true reflection of the models ability to generalise to unseen data. So to get a better idea of the performance of the models I plotted an <a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" title="ROC curve">ROC</a> curve.</p>
+<p>The optimal subset size for the RF was 1 and the ORF 1 with the RF outperforming the ORF when the subset sizes were optimal for each model. However, the accuracy computed in this way (only using the training data) is not a true reflection of the models ability to generalize to unseen data. So to get a better idea of the performance of the models I plotted an <a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" title="ROC curve">ROC</a> curve.</p>
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/roc.png" alt="roc curve" />
 </p>
 
-<p>RF and ORF both produce <a href="https://en.wikipedia.org/wiki/Posterior_probability" title="post probs">posterior (after the data has been taken into account) probabilities</a> for observations to belong to a certain class. In a binary case, such as whether a team is going to loose or win a match, a threshold can be set (say 0.5) and if the posterior probability is above this threshold we classify to the “win”&quot; class, otherwise if it is below the threshold we classify to the “loose” class. The ROC curve shows the <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">false positive rate</a> (fraction of matches a team wins incorrectly classified as a loss) and <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">true positive rate</a> (fraction of matches a team won correctly classified as a win) for a sequence of thresholds from 0 to 1. Simply put, the classifier with a corresponding ROC curve that most closely hugs the top left corner of the plot as it arcs from the bottom left to the top right is considered to have the highest predictive power. So the two models seemed to be fairly similar. It was interesting to note that if the threshold was simply set to zero, both models would’ve correctly predicted a team winning when they actually won around 40% of the time. Lastly, the hold out test set was used to obtain the test accuracy of each model, given below.</p>
+<p>RF and ORF both produce <a href="https://en.wikipedia.org/wiki/Posterior_probability" title="post probs">posterior (after the data has been taken into account) probabilities</a> for observations to belong to a certain class. In a binary case, such as whether a team is going to loose or win a match, a threshold can be set (say 0.5) and if the posterior probability is above this threshold we classify to the “win”&quot; class, otherwise if it is below the threshold we classify to the “loose” class. The ROC curve shows the <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">false positive rate</a> (fraction of matches a team wins incorrectly classified as a loss) and <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" title="FPR/TPR">true positive rate</a> (fraction of matches a team won correctly classified as a win) for a sequence of thresholds from 0 to 1. Simply put, the classifier with a corresponding ROC curve that most closely hugs the top left corner of the plot as it arcs from the bottom left to the top right is considered to have the highest predictive power. So the two models seemed to be fairly similar. Lastly, the hold out test set was used to obtain the test accuracy of each model, given below.</p>
+
+
+
+
 
 <table class="table">
     <thead>
@@ -188,28 +200,28 @@ time.taken.rf &lt;- end.time - start.time</code></pre>
     <tbody>
       <tr>
         <td>Random Forest</td>
-        <td>74.14%</td>
+        <td>80.95%</td>
       </tr>
       <tr>
         <td>Oblique RF pls</td>
-        <td>75.86%</td>
+        <td>76.19%</td>
       </tr>
     </tbody>
   </table>
 
-<p>The ORF outperformed the RF by roughly 1.7%.</p>
-<p>So there it was, I had my model! Ready with my trained Oblique Random Forest at my side I was going to predict the future of the Rugby World Cup. But then I thought, wouldn’t it be really cool if I could find some way to do what I just did, but between each match incorporate the latest result from the tournament? In other words, collect the outcome of a match just after it took place, add it to my data, retrain the model and make a prediction for the next match with the new up to date model. On top of this, would it be possible to do it in some automated fashion? Then along came Domino!</p>
-</div>
-<div id="automating-the-process-using-domino-scheduling" class="section level2">
-<h2>Automating the process using Domino scheduling</h2>
-<p>I first heard of Domino from <a href="http://blog.dominodatalab.com/using-r-h2o-and-domino-for-a-kaggle-competition/" title="domBlog1">this</a> great blog post by <a href="http://www.jofaichow.co.uk/" title="jo">Jo-Fai Chow</a> which shows you how to use R, <a href="http://h2o.ai/" title="H2O">H2O</a> and Domino for a <a href="https://www.kaggle.com/" title="kaggle">Kaggle</a> competition. In a nutshell, Domino is an enterprise-grade platform that enables you to run, scale, share, and deploy analytical models. The post also includes a tutorial on how to get started with Domino, from getting up and running to running your first R program in the cloud! I would recommend this as a good place to start for anyone new to Domino. Alternatively, you can simply sign up <a href="https://app.dominodatalab.com/signup" title="signup">here</a> for a 14-day free trial and once your account has been created you can access a Tour page that will get you up and running in no time.</p>
-<p>So the first thing I needed to do to automate the process of data collection and model retraining was to upload my R scripts. First, the script (<em>GetRWCData.R</em>) responsible for getting and cleaning the data which outputs a .csv file containing the new data. Second, I had to upload the script (<em>RWCPrediction.R</em>) used to train the model on the outputted data, saving the model as a .rda file.</p>
+	<p>The RF outperformed the ORF by roughly 4.76%.</p>
+	<p>So there it was, I had my model! Ready with my trained Random Forest at my side I was going to predict the future of the Rugby World Cup. But then I thought, wouldn’t it be really cool if I could find some way to do what I just did, but between each match incorporate the latest result from the tournament? In other words, collect the outcome of a match just after it took place, add it to my data, retrain the model and make a prediction for the next match with the new up to date model. On top of this, would it be possible to do it in some automated fashion? Then along came Domino!</p>
+	</div>
+	<div id="automating-the-process-using-domino-scheduling" class="section level2">
+	<h2>Automating the process using Domino scheduling</h2>
+	<p>I first heard of Domino from <a href="http://blog.dominodatalab.com/using-r-h2o-and-domino-for-a-kaggle-competition/" title="domBlog1">this</a> great blog post by <a href="http://www.jofaichow.co.uk/" title="jo">Jo-Fai Chow</a> which shows you how to use R, <a href="http://h2o.ai/" title="H2O">H2O</a> and Domino for a <a href="https://www.kaggle.com/" title="kaggle">Kaggle</a> competition. In a nutshell, Domino is an enterprise-grade platform that enables you to run, scale, share, and deploy analytical models. The post also includes a tutorial on how to get started with Domino, from getting up and running to running your first R program in the cloud! I would recommend this as a good place to start for anyone new to Domino. Alternatively, you can simply sign up <a href="https://app.dominodatalab.com/signup" title="signup">here</a> for a 14-day free trial and once your account has been created you can access a Tour page that will get you up and running in no time.</p>
+	<p>So the first thing I needed to do to automate the process of data collection and model retraining was to upload my R scripts. First, the script (<em>GetRWCData.R</em>) responsible for getting and cleaning the data which outputs a .csv file containing the new data. Second, I had to upload the script (<em>RWCPrediction.R</em>) used to train the model on the outputted data, saving the model as a .rda file.</p>
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino1.png" alt="domino" />
 </p>
 
-<p>As a last minute decision I decided to use the RF instead of the ORF because of the RF having a much sorter training time but still being a close contender regarding performance. Therefore the model training script <em>RWCPrediction.R</em> contains the following code.</p>
+<p>Since I decided to use the RF instead of the ORF, the model training script <em>RWCPrediction.R</em> contains the following code.</p>
 <pre class="r"><code>### International Rugby world cup match prediction model ###
 
 # load libraries
@@ -217,9 +229,7 @@ library(caret)
 library(randomForest)
 
 # load data
-data &lt;- read.csv(&quot;RWCData.csv&quot;)
-cols &lt;- 4:ncol(data)
-data[,cols] = apply(data[,cols], 2, function(x) as.numeric(x))
+data &lt;- readRDS(&quot;RWCData.rda&quot;)
 
 # tune Grid
 rfGrid &lt;-  expand.grid(mtry = c(1, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50))
@@ -242,6 +252,8 @@ saveRDS(model, file = &quot;RWC_Prediction_Model.rda&quot;)</code></pre>
 
 <p>After the data script had ran successfully, the model script can use the new data to retrain the model. So similarly, I inserted my script for training the model as the <em>command to run</em>, set the recurring time (an hour after the data had been collected) and clicked <em>schedule</em>. Note in this case I also ticked the <em>publish after complete</em> box which takes care of republishing the API (more about this later).</p>
 
+
+
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino2.png" alt="domino" />
 </p>
@@ -254,6 +266,7 @@ saveRDS(model, file = &quot;RWC_Prediction_Model.rda&quot;)</code></pre>
 <pre class="r"><code>## Load Library
 library(caret)
 library(randomForest)
+library(lubridate)
 
 ## Load Pre-trained model
 model &lt;- readRDS(file = &quot;RWC_Prediction_Model.rda&quot;)
@@ -263,42 +276,80 @@ teamStats &lt;- readRDS(file=&quot;teamStats.rda&quot;)
 rank &lt;- readRDS(&quot;rank.rda&quot;)
 rankScore &lt;- readRDS(&quot;rankScore.rda&quot;)
 rankChange &lt;- readRDS(&quot;rankChange.rda&quot;)
+teams &lt;- readRDS(&quot;teamNames.rda&quot;)
 
 ## Create a function to take team name inputs
 ## and then return a prediction for the match
 predict_match &lt;- function(homeTeam, awayTeam) {
 
-    teams &lt;- c(&quot;Namibia&quot;, &quot;South Africa&quot;, &quot;Argentina&quot;, &quot;Canada&quot;, &quot;United States&quot;,
-               &quot;Uruguay&quot;, &quot;Japan&quot;, &quot;England&quot;, &quot;France&quot;, &quot;Georgia&quot;, &quot;Ireland&quot;,
-               &quot;Italy&quot;, &quot;Romania&quot;, &quot;Scotland&quot;, &quot;Wales&quot;, &quot;Australia&quot;,
-               &quot;Fiji&quot;, &quot;New Zealand&quot;, &quot;Samoa&quot;, &quot;Tonga&quot;)
-
     homeIndex &lt;- which(teams == homeTeam)
     awayIndex &lt;- which(teams == awayTeam)
+
+    swap &lt;- awayTeam == &quot;England&quot;
+
+    if(swap){
+
+        temp &lt;- homeTeam
+        homeTeam &lt;- awayTeam
+        awayTeam &lt;- temp
+
+        temp &lt;- homeIndex
+        homeIndex &lt;- awayIndex
+        awayIndex &lt;- temp
+
+    }
+
 
     homeTeamStats &lt;- c(teamStats[[homeIndex]], rank[homeIndex], rankScore[homeIndex], rankChange[homeIndex])
     awayTeamStats &lt;- c(teamStats[[awayIndex]], rank[awayIndex], rankScore[awayIndex], rankChange[awayIndex])
 
+    date &lt;- Sys.Date()
     levelsx &lt;- levels(factor(teams))
     levelsy &lt;- levels(factor(c(&quot;loose&quot;,&quot;win&quot;)))
-    newCase &lt;- read.csv(&quot;newCase.csv&quot;)
-    levels(newCase[,1]) &lt;- levelsy
-    levels(newCase[,2]) &lt;- levelsx
-    levels(newCase[,3]) &lt;- levelsx
+    newCase &lt;- readRDS(&quot;newCase.rda&quot;)
     newCase[1,2] &lt;- homeTeam
     newCase[1,3] &lt;- awayTeam
-    newCase[1,4:27] &lt;- homeTeamStats
-    newCase[1,28:51] &lt;- awayTeamStats
+    newCase[1,4] &lt;- factor(month(date))
+    newCase[1,5] &lt;- factor(year(date))
+    newCase[1,6:29] &lt;- homeTeamStats
+    newCase[1,30:53] &lt;- awayTeamStats
 
+    ## Return the predicted class probabilities
+    if(swap){
+        y_probs &lt;- predict(model, newCase, type=&quot;prob&quot;)
+        return(as.character(rev(y_probs)))
+    } else if(homeTeam == &quot;England&quot;) {
+        y_probs &lt;- predict(model, newCase, type=&quot;prob&quot;)
+        return(as.character(y_probs))
+    } else {
+        y_probs1 &lt;- predict(model, newCase, type=&quot;prob&quot;)
 
-    ## Use the model for prediction
-    y_probs &lt;- predict(model, newCase, type=&quot;prob&quot;)
+        temp &lt;- homeIndex
+        homeIndex &lt;- awayIndex
+        awayIndex &lt;- temp
 
-    ## Return the predicted class
-    return(as.character(y_probs))
+        homeTeamStats &lt;- c(teamStats[[homeIndex]], rank[homeIndex], rankScore[homeIndex], rankChange[homeIndex])
+        awayTeamStats &lt;- c(teamStats[[awayIndex]], rank[awayIndex], rankScore[awayIndex], rankChange[awayIndex])
 
+        date &lt;- Sys.Date()
+        levelsx &lt;- levels(factor(teams))
+        levelsy &lt;- levels(factor(c(&quot;loose&quot;,&quot;win&quot;)))
+        newCase &lt;- readRDS(&quot;newCase.rda&quot;)
+        newCase[1,2] &lt;- homeTeam
+        newCase[1,3] &lt;- awayTeam
+        newCase[1,4] &lt;- factor(month(date))
+        newCase[1,5] &lt;- factor(year(date))
+        newCase[1,6:29] &lt;- homeTeamStats
+        newCase[1,30:53] &lt;- awayTeamStats
+
+        y_probs2 &lt;- predict(model, newCase, type=&quot;prob&quot;)
+        looseProb &lt;- round((y_probs1[1] + y_probs2[2])/2,4)
+        winProb &lt;- round((y_probs1[2] + y_probs2[1])/2,4)
+        return(as.character(c(looseProb, winProb)))
+    }
 }</code></pre>
-<p>The next step was to upload this script (in my case called <em>model_API.R</em>) to my Domino project.</p>
+<p>Now, one I had to remember was that within the data there was an implicit home team advantage and therefore the order of teams in the input string to the function was important. Since England is hosting the tournament, I set their predictions to always exibit this home team advantage. For all the other teams I made two predictions with both teams getting a turn at being the home team. The final probabilities are then the average over the two predictions. The next step was to upload this script (in my case called <em>model_API.R</em>) to my Domino project.</p>
+
 
 <p>
 		<img class="img img-responsive center-block" src="{{ STATIC_URL }}/static/how/domino3.png" alt="domino" />
@@ -349,6 +400,7 @@ print response_data['result']</code></pre>
 <p>If you are interested in seeing the model in action and getting your own prediction for a match, feel free to visit the <a href="http://rwcpredictor.herokuapp.com/" title="app">web app</a>.</p>
 <p>Finally, I would just like to thank <a href="https://twitter.com/DominoDataLab" title="nick">Nick</a> who suggested to me that I write this blog post. Maybe I will write a follow up post when the tournament is over when all the results are in. :)</p>
 <p>Until next time, all the best.</p>
+
 <p id="doug">Arnu</p>
 
 
