@@ -338,7 +338,7 @@ predict_match &lt;- function(homeTeam, awayTeam) {
         return(as.character(c(looseProb, winProb)))
     }
 }</code></pre>
-<p>Now, one I had to remember was that within the data there was an implicit home team advantage and therefore the order of teams in the input string to the function was important. Since England is hosting the tournament, I set their predictions to always exibit this home team advantage. For all the other teams I made two predictions with both teams getting a turn at being the home team. The final probabilities are then the average over the two predictions. The next step was to upload this script (in my case called <em>model_API.R</em>) to my Domino project.</p>
+<p>Now, one thing I had to remember was that within the data there was an implicit home team advantage and therefore the order of teams in the input string to the function was important. Since England is hosting the tournament, I set their predictions to always exibit this home team advantage. For all the other teams I made two predictions with both teams getting a turn at being the home team. The final probabilities are then the average over the two predictions. The next step was to upload this script (in my case called <em>model_API.R</em>) to my Domino project.</p>
 
 
 <p>
@@ -388,7 +388,6 @@ print response_data['result']</code></pre>
 <li>Automate the republishing of the API by ticking the <em>publish after complete</em> box when scheduling the training of the prediction model.</li>
 </ol>
 <p>If you are interested in seeing the model in action and getting your own prediction for a match, feel free to visit the <a href="http://rwcpredictor.herokuapp.com/" title="app">web app</a>.</p>
-<p>Finally, I would just like to thank <a href="https://twitter.com/DominoDataLab" title="nick">Nick</a> who suggested to me that I write this blog post. Maybe I will write a follow up post when the tournament is over when all the results are in. :)</p>
 <p>Until next time, all the best.</p>
 
 <p id="doug">Arnu</p>
