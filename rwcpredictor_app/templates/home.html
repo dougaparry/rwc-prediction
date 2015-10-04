@@ -27,7 +27,7 @@
                     </div>
                   </div>
                 </div>
-                {% if forloop.counter == 23 or forloop.counter == 24 or forloop.counter == 25 or forloop.counter == 26 or forloop.counter == 27 or forloop.counter == 28 or forloop.counter == 29 or forloop.counter == 30 or forloop.counter == 31 or forloop.counter == 32 or forloop.counter == 33 or forloop.counter == 34 or forloop.counter == 35 or forloop.counter == 36 or forloop.counter == 37 or forloop.counter == 38 or forloop.counter == 39 or forloop.counter == 40 %}
+                {% if forloop.counter == 29 or forloop.counter == 30 or forloop.counter == 31 or forloop.counter == 32 or forloop.counter == 33 or forloop.counter == 34 or forloop.counter == 35 or forloop.counter == 36 or forloop.counter == 37 or forloop.counter == 38 or forloop.counter == 39 or forloop.counter == 40 %}
                 <div class="row">
                   <div class="col-xs-12">
                         <button type="button" class="btn btn-default center-block" onclick="javascript:showPrediction('{{ item.0 }}', '{{ item.6 }}', '{{ item.7 }}', '{{ item.3 }}', '{{ item.4 }}');">See Prediction</button>
@@ -277,6 +277,55 @@
                             <div class="col-xs-12">
                               <div class="well">
                                 <h4 class="text-center"> Outcome: {{ item.3 }} won as predicted with a 76.6% probability</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+
+                            {% if forloop.counter == 23 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center"> Outcome: {{ item.3 }} won as predicted with a 90.45% probability</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% if forloop.counter == 24 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center">  Outcome: {{ item.4 }} won. This result had a probability of 40.95%</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% if forloop.counter == 25 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center"> Outcome: {{ item.3 }} won as predicted with a 84.05% probability</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% if forloop.counter == 26 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center"> Outcome: {{ item.4 }} won as predicted with a 53.25% probability</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% if forloop.counter == 27 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center"> Outcome: {{ item.3 }} won as predicted with a 65.75% probability</h4>
+
+                              </div>
+                            </div>
+                            {% endif %}
+                            {% if forloop.counter == 28 %}
+                            <div class="col-xs-12">
+                              <div class="well">
+                                <h4 class="text-center"> Outcome: {{ item.3 }} won as predicted with a 80.1% probability</h4>
 
                               </div>
                             </div>
