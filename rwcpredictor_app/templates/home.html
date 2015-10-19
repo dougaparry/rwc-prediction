@@ -16,7 +16,7 @@
 
    {% for item in data %}
         {% if forloop.counter == 41 %}
-        <h3 class="text-center">Quarterfinals</h3>
+        <h3 class="text-center">Semi-finals</h3>
         {% endif %}
               <div class="col-sm-12 col-lg-12 col-md-12"  id="{{ item.0 }}-show">
               <div class="thumbnail">
@@ -442,6 +442,8 @@
                               </div>
                             </div>
                             {% endif %}
+
+                            <h3 class="text-center">Quarterfinals</h3>
 
                             {% if forloop.counter == 41 %}
                             <div class="col-xs-12">
