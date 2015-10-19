@@ -108,10 +108,14 @@ function determine(){
   games.push(game43);
   var game44 = new Date('October 18, 2015 17:00:00');
   games.push(game44);
+  var game45 = new Date('October 24, 2015 17:00:00');
+  games.push(game45);
+  var game46 = new Date('October 25, 2015 18:00:00');
+  games.push(game46);
 
   var returnVar = 0;
 
-  for(i = 0; i < 44; i++){
+  for(i = 0; i < 46; i++){
     if(currentTime.getTime() < games[i].getTime()){
         returnVar = i+1;
         break;
