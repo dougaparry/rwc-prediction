@@ -76,7 +76,7 @@ def get_predictions():
                 data.append(row)
 
     for item in data:
-        if int(item[0]) < 45:
+        if int(item[0]) < 47:
             probabilities = receiveProbs(item[3], item[4])
             item.append(round(float(probabilities[1])*100,2)) #team 1 prob
             item.append(round(float(probabilities[0])*100,2)) #team 2 prob
