@@ -55,7 +55,7 @@ from bs4 import BeautifulSoup
 def receiveProbs(teamA, teamB):
     response = unirest.post("https://app.dominodatalab.com/v1/Arnu/rwcPrediction/endpoint",
         headers={
-            "X-Domino-Api-Key": "iuGyjiXexOrCzjFPsNs3mkBRO2ztIvxhHBEYmtfVmiUjbaUbb4HeS5E0x8Uk3WhP",
+            "X-Domino-Api-Key": "Nope",
             "Content-Type": "application/json" },
         params=json.dumps({
             "parameters": [teamA, teamB]}))
